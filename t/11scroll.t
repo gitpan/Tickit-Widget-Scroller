@@ -2,9 +2,9 @@
 
 use strict;
 
-use Test::More tests => 16;
+use Test::More tests => 30;
 
-use Tickit::Test;
+use Tickit::Test 0.07;
 
 use Tickit::Widget::Scroller;
 use Tickit::Widget::Scroller::Item::Text;
@@ -52,6 +52,15 @@ is_display( [ "Item of text 1 ",
               "Item of text 3 " ],
             'Display initially' );
 
+is( $scroller->item2line( 0,  0 ), 0, 'item2line 0, 0 initially' );
+is( $scroller->item2line( 0, -1 ), 1, 'item2line 0, -1 initially' );
+is( $scroller->item2line( 1,  0 ), 2, 'item2line 1, 0 initially' );
+is( $scroller->item2line( 1, -1 ), 3, 'item2line 1, -1 initially' );
+is( $scroller->item2line( 2,  0 ), 4, 'item2line 2, 0 initially' );
+is( $scroller->item2line( 2, -1 ), undef, 'item2line 2, -1 initially offscreen' );
+
+is_deeply( [ $scroller->item2line( 2, -1 ) ], [ undef, "below" ], 'list item2line 2, -1 initially below screen' );
+
 $scroller->scroll( +10 );
 
 flush_tickit;
@@ -86,11 +95,20 @@ is_display( [ "Item of text 6 ",
               "Item of text 8 " ],
             'Display after scroll +10' );
 
+is( $scroller->item2line( 0,  0 ), undef, 'item2line 0, 0 offscreen after scroll +10' );
+is( $scroller->item2line( 0, -1 ), undef, 'item2line 0, -1 offscreen after scroll +10' );
+is( $scroller->item2line( 5,  0 ), 0, 'item2line 5, 0 after scroll +10' );
+is( $scroller->item2line( 5, -1 ), 1, 'item2line 5, -1 after scroll +10' );
+is( $scroller->item2line( 8,  0 ), undef, 'item2line 8, 0 offscreen after scroll +10' );
+
+is_deeply( [ $scroller->item2line( 0, 0 ) ], [ undef, "above" ], 'list item2line 0, 0 above screen after scroll +10' );
+is_deeply( [ $scroller->item2line( 8, 0 ) ], [ undef, "below" ], 'list item2line 8, 0 below screen after scroll +10' );
+
 $scroller->scroll( -1 );
 
 flush_tickit;
 
-is_termlog( [ SCROLL(0,4,-1),
+is_termlog( [ SCROLLRECT(0,0,5,15, -1,0),
               GOTO(0,0),
               SETPEN,
               PRINT("which is long"),
@@ -109,7 +127,7 @@ $scroller->scroll( +1 );
 
 flush_tickit;
 
-is_termlog( [ SCROLL(0,4,+1),
+is_termlog( [ SCROLLRECT(0,0,5,15, +1,0),
               GOTO(4,0),
               SETPEN,
               PRINT("Item of text 8 ") ],

@@ -1,7 +1,10 @@
 Build.PL
 Changes
+examples/richtext.pl
+examples/text.pl
 lib/Tickit/Widget/Scroller.pm
 lib/Tickit/Widget/Scroller/Item.pod
+lib/Tickit/Widget/Scroller/Item/RichText.pm
 lib/Tickit/Widget/Scroller/Item/Text.pm
 LICENSE
 Makefile.PL
@@ -11,7 +14,9 @@ META.yml
 README
 t/00use.t
 t/01item-text.t
+t/02item-richtext.t
 t/10initial.t
 t/11scroll.t
 t/20push.t
+t/21shift.t
 t/99pod.t

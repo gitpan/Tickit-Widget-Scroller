@@ -5,9 +5,10 @@ WriteMakefile
           'NAME' => 'Tickit::Widget::Scroller',
           'VERSION_FROM' => 'lib/Tickit/Widget/Scroller.pm',
           'PREREQ_PM' => {
+                           'String::Tagged' => 0,
                            'Test::More' => 0,
-                           'Tickit::Test' => 0,
-                           'Tickit::Widget' => '0.04'
+                           'Tickit::Test' => '0.07',
+                           'Tickit::Widget' => '0.06'
                          },
           'INSTALLDIRS' => 'site',
           'EXE_FILES' => [],

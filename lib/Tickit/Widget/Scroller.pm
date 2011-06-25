@@ -8,8 +8,9 @@ package Tickit::Widget::Scroller;
 use strict;
 use warnings;
 use base qw( Tickit::Widget );
+Tickit::Widget->VERSION( '0.06' );
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 use Carp;
 
@@ -45,6 +46,42 @@ view of the items is scrollable, able to display only a part of the list.
 
 A Scroller widget stores a list of instances implementing the
 C<Tickit::Widget::Scroller::Item> interface.
+
+=cut
+
+=head1 KEYBINDINGS
+
+The following keys are bound
+
+=over 2
+
+=item * Down
+
+Scroll one line down
+
+=item * Up
+
+Scroll one line up
+
+=item * PageDown
+
+Scroll half a window down
+
+=item * PageUp
+
+Scroll half a window up
+
+=item * Ctrl-Home
+
+Scroll to the top
+
+=item * Ctrl-End
+
+Scroll to the bottom
+
+=back
+
+=cut
 
 =head1 CONSTRUCTOR
 
@@ -127,7 +164,7 @@ sub push
    if( my $win = $self->window ) {
       my $lines = $win->lines;
 
-      my $oldlast = $oldsize ? ( $self->item2line( $oldsize-1 ) )[1] : -1;
+      my $oldlast = $oldsize ? $self->item2line( $oldsize-1, -1 ) : -1;
 
       # Previous tail is on screen if $oldlast is defined and less than $lines
       # If not, don't bother drawing or scrolling
@@ -142,10 +179,51 @@ sub push
       if( $added > $spare ) {
          $self->render_lines( $lines - $spare, $lines ) if $added < $lines;
          $self->scroll( $added - $spare );
+         # ->scroll already did $win->restore
       }
       else {
          $self->render_lines( $firstblank, $firstblank + $added );
+         $win->restore;
       }
+   }
+}
+
+=head2 $scroller->shift( $count )
+
+Remove the given number of items from the start of the list.
+
+If any of the items are on display, the Scroller will be scrolled upwards an
+amount sufficient to close the gap, ensuring the first remaining item is now
+at the top of the display.
+
+=cut
+
+sub shift :method
+{
+   my $self = shift;
+   my ( $count ) = @_;
+
+   defined $count or $count = 1;
+
+   my $items = $self->{items};
+
+   croak '$count out of bounds' if $count <= 0;
+   croak '$count out of bounds' if $count > @$items;
+
+   my ( $lastline, $offscreen ) = $self->item2line( $count - 1, -1 );
+
+   if( defined $lastline ) {
+      $self->scroll( $lastline + 1);
+      # ->scroll implies $win->restore
+   }
+
+   splice @$items, 0, $count;
+   splice @{ $self->{itemheights} }, 0, $count;
+   $self->{start_item} -= $count;
+
+   if( !defined $lastline and $offscreen eq "below" ) {
+      $self->scroll_to_top;
+      # ->scroll implies $win->restore
    }
 }
 
@@ -166,6 +244,7 @@ sub scroll
 
    my $window = $self->window;
    my $items = $self->{items};
+   @$items or return;
 
    my $itemidx = $self->{start_item};
    my $partial = $self->{start_partial};
@@ -181,7 +260,7 @@ sub scroll
       my $itemheight = $self->_itemheight( $itemidx );
 
       if( $delta >= $itemheight ) {
-         last if $itemidx == $#$items;
+         $partial = $itemheight - 1, last if $itemidx == $#$items;
 
          $delta -= $itemheight;
          $scroll_amount += $itemheight;
@@ -189,7 +268,7 @@ sub scroll
          $itemidx++;
       }
       elsif( $delta < 0 ) {
-         last if $itemidx == 0;
+         $partial = 0, last if $itemidx == 0;
          $itemidx--;
 
          $itemheight = $self->_itemheight( $itemidx );
@@ -247,6 +326,7 @@ sub scroll_to
    my $lines = $window->lines;
 
    my $items = $self->{items};
+   @$items or return;
 
    if( $line < 0 ) {
       $line += $lines;
@@ -280,6 +360,11 @@ sub scroll_to
    $line -= $itemline;
 
    while( $line > 0 ) {
+      if( $itemidx == 0 ) {
+         $line = 0;
+         last;
+      }
+
       $itemheight = $self->_itemheight( --$itemidx );
 
       $line -= $itemheight;
@@ -380,23 +465,27 @@ sub line2item
    return;
 }
 
-=head2 $firstline = $scroller->item2line( $itemidx )
+=head2 $line = $scroller->item2line( $itemidx, $itemline )
 
-=head2 ( $firstline, $lastline ) = $scroller->item2line( $itemidx )
+=head2 ( $line, $offscreen ) = $scroller->item2line( $itemidx, $itemline )
 
-Returns the first display line in the window of the item at the given index.
-In list context also returns the last line. If no window has been set, or the
-item is not visible, C<undef> or an empty list are returned. If the item is
-partially on display, then C<$firstline> may be negative, or C<$lastline> may
-be higher than there are lines in the window. C<$itemidx> may be given
-negative, to count backwards from the last item.
+Returns the display line in the window of the given line of the item at the
+given index. C<$itemidx> may be given negative, to count backwards from the
+last item. C<$itemline> may be negative to count backward from the last line
+of the item.
+
+In list context, also returns a value describing the offscreen nature of the
+item. For items fully on display, this value is C<undef>. If the given line of
+the given item is not on display because it is scrolled off either the top or
+bottom of the window, this value will be either C<"above"> or C<"below">
+respectively.
 
 =cut
 
 sub item2line
 {
    my $self = shift;
-   my ( $want_itemidx ) = @_;
+   my ( $want_itemidx, $want_itemline ) = @_;
 
    my $window = $self->window or return;
    my $lines = $window->lines;
@@ -412,22 +501,41 @@ sub item2line
       croak '$itemidx out of bounds' if $want_itemidx >= @$items;
    }
 
-   return if $want_itemidx < $self->{start_item};
+   my $itemheight = $self->_itemheight( $want_itemidx );
+
+   defined $want_itemline or $want_itemline = 0;
+   if( $want_itemline < 0 ) {
+      $want_itemline += $itemheight;
+
+      croak '$itemline out of bounds' if $want_itemline < 0;
+   }
+   else {
+      croak '$itemline out of bounds' if $want_itemline >= $itemheight;
+   }
+
+   if( $want_itemidx < $self->{start_item} ) {
+      return ( undef, "above" ) if wantarray;
+      return;
+   }
+
    my $itemidx = $self->{start_item};
 
-   my $firstline = -$self->{start_partial};
+   my $line = -$self->{start_partial};
 
-   while( $itemidx < @$items and $firstline < $lines ) {
+   while( $itemidx < @$items and $line < $lines ) {
       my $itemheight = $self->_itemheight( $itemidx );
       if( $want_itemidx == $itemidx ) {
-         return $firstline, $firstline + $itemheight - 1 if wantarray;
-         return $firstline;
+         $line += $want_itemline;
+
+         last if $line >= $lines;
+         return $line;
       }
 
-      $firstline += $itemheight;
+      $line += $itemheight;
       $itemidx++;
    }
 
+   return ( undef, "below" ) if wantarray;
    return;
 }
 
@@ -485,6 +593,30 @@ sub render_lines
       $win->erasech( $cols );
       $line++;
    }
+}
+
+my %bindings = (
+   Down => sub { $_[0]->scroll( +1 ) },
+   Up   => sub { $_[0]->scroll( -1 ) },
+
+   PageDown => sub { $_[0]->scroll( +int( $_[0]->window->lines / 2 ) ) },
+   PageUp   => sub { $_[0]->scroll( -int( $_[0]->window->lines / 2 ) ) },
+
+   'C-Home' => sub { $_[0]->scroll_to_top },
+   'C-End'  => sub { $_[0]->scroll_to_bottom },
+);
+
+sub on_key
+{
+   my $self = shift;
+   my ( $type, $str ) = @_;
+
+   if( $type eq "key" and my $code = $bindings{$str} ) {
+      $code->( $self, $str );
+      return 1;
+   }
+
+   return 0;
 }
 
 =head1 TODO

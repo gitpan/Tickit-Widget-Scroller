@@ -2,7 +2,7 @@
 
 use strict;
 
-use Test::More tests => 28;
+use Test::More tests => 30;
 
 use Tickit::Test;
 
@@ -60,14 +60,14 @@ is_deeply( [ $scroller->line2item( 3 ) ], [ ],      'line2item 3' );
 is_deeply( [ $scroller->line2item( -1 ) ], [ ],      'line2item -1' );
 is_deeply( [ $scroller->line2item( -23 ) ], [ 2, 0 ], 'line2item -23' );
 
-is( scalar $scroller->item2line( 0 ),     0, 'scalar item2line 0' );
-is_deeply( [ $scroller->item2line( 0 ) ], [ 0, 0 ], 'item2line 0' );
-is_deeply( [ $scroller->item2line( 1 ) ], [ 1, 1 ], 'item2line 1' );
-is_deeply( [ $scroller->item2line( 2 ) ], [ 2, 2 ], 'item2line 2' );
+is( $scroller->item2line( 0 ),     0, 'item2line 0' );
+is( $scroller->item2line( 0, -1 ), 0, 'item2line 0, -1' );
+is( $scroller->item2line( 1 ),     1, 'item2line 1' );
+is( $scroller->item2line( 2 ),     2, 'item2line 2' );
 
-is_deeply( [ $scroller->item2line( -1 ) ], [ 2, 2 ], 'item2line -1' );
+is( $scroller->item2line( -1 ), 2, 'item2line -1' );
 
-$term->resize( 25, 20 );
+resize_term( 25, 20 );
 
 flush_tickit;
 
@@ -109,8 +109,10 @@ is_deeply( [ $scroller->line2item( 4 ) ], [ ],      'line2item 4' );
 is_deeply( [ $scroller->line2item( -1 ) ], [ ],      'line2item -1' );
 is_deeply( [ $scroller->line2item( -22 ) ], [ 2, 0 ], 'line2item -22' );
 
-is_deeply( [ $scroller->item2line( 0 ) ], [ 0, 0 ], 'item2line 0' );
-is_deeply( [ $scroller->item2line( 1 ) ], [ 1, 2 ], 'item2line 1' );
-is_deeply( [ $scroller->item2line( 2 ) ], [ 3, 3 ], 'item2line 2' );
+is( $scroller->item2line( 0 ),     0, 'item2line 0' );
+is( $scroller->item2line( 0, -1 ), 0, 'item2line 0, -1' );
+is( $scroller->item2line( 1 ),     1, 'item2line 1' );
+is( $scroller->item2line( 1, -1 ), 2, 'item2line 1, -1' );
+is( $scroller->item2line( 2 ),     3, 'item2line 2' );
 
-is_deeply( [ $scroller->item2line( -1 ) ], [ 3, 3 ], 'item2line -1' );
+is( $scroller->item2line( -1 ), 3, 'item2line -1' );

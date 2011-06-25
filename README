@@ -29,6 +29,33 @@ DESCRIPTION
     A Scroller widget stores a list of instances implementing the
     "Tickit::Widget::Scroller::Item" interface.
 
+KEYBINDINGS
+    The following keys are bound
+
+    * Down
+
+      Scroll one line down
+
+    * Up
+
+      Scroll one line up
+
+    * PageDown
+
+      Scroll half a window down
+
+    * PageUp
+
+      Scroll half a window up
+
+    * Ctrl-Home
+
+      Scroll to the top
+
+    * Ctrl-End
+
+      Scroll to the bottom
+
 CONSTRUCTOR
   $scroller = Tickit::Widget::Scroller->new
     Constructs a new "Tickit::Widget::Scroller" object. The new object will
@@ -43,6 +70,13 @@ METHODS
     possibly by scrolling downward if required. While the scroller isn't
     adjusted, by using any of the "scroll" methods, it will remain following
     the tail of the items, scrolling itself upwards as more are added.
+
+  $scroller->shift( $count )
+    Remove the given number of items from the start of the list.
+
+    If any of the items are on display, the Scroller will be scrolled
+    upwards an amount sufficient to close the gap, ensuring the first
+    remaining item is now at the top of the display.
 
   $scroller->scroll( $delta )
     Move the display up or down by the given $delta amount; with positive
@@ -75,14 +109,18 @@ METHODS
     "undef" or an empty list are returned. $line may be negative to count
     backward from the last line on display; the last line taking -1.
 
-  $firstline = $scroller->item2line( $itemidx )
-  ( $firstline, $lastline ) = $scroller->item2line( $itemidx )
-    Returns the first display line in the window of the item at the given
-    index. In list context also returns the last line. If no window has been
-    set, or the item is not visible, "undef" or an empty list are returned.
-    If the item is partially on display, then $firstline may be negative, or
-    $lastline may be higher than there are lines in the window. $itemidx may
-    be given negative, to count backwards from the last item.
+  $line = $scroller->item2line( $itemidx, $itemline )
+  ( $line, $offscreen ) = $scroller->item2line( $itemidx, $itemline )
+    Returns the display line in the window of the given line of the item at
+    the given index. $itemidx may be given negative, to count backwards from
+    the last item. $itemline may be negative to count backward from the last
+    line of the item.
+
+    In list context, also returns a value describing the offscreen nature of
+    the item. For items fully on display, this value is "undef". If the
+    given line of the given item is not on display because it is scrolled
+    off either the top or bottom of the window, this value will be either
+    "above" or "below" respectively.
 
 TODO
     *   Item::RichText - will depend on String::Tagged
