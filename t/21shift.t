@@ -4,7 +4,7 @@ use strict;
 
 use Test::More tests => 15;
 
-use Tickit::Test 0.07;
+use Tickit::Test 0.12;
 
 use Tickit::Widget::Scroller;
 use Tickit::Widget::Scroller::Item::Text;
@@ -32,7 +32,12 @@ is_termlog( [ ( map { GOTO($_-1,0),
               GOTO(7,0) ],
             'Termlog initially' );
 
-is_display( [ map { "Existing line $_" } 1 .. 6 ],
+is_display( [ [TEXT("Existing line 1")],
+              [TEXT("Existing line 2")],
+              [TEXT("Existing line 3")],
+              [TEXT("Existing line 4")],
+              [TEXT("Existing line 5")],
+              [TEXT("Existing line 6")] ],
             'Display initially' );
 
 is_cursorpos( 7, 0, 'Cursor position intially' );
@@ -41,7 +46,8 @@ $scroller->shift;
 
 flush_tickit;
 
-is_termlog( [ SCROLLRECT(0,0,6,20, 1,0),
+is_termlog( [ SETBG(undef),
+              SCROLLRECT(0,0,6,20, 1,0),
               GOTO(5,0),
               SETPEN,
               PRINT("Existing line 7"),
@@ -50,7 +56,12 @@ is_termlog( [ SCROLLRECT(0,0,6,20, 1,0),
               GOTO(7,0) ],
             'Termlog after shift' );
 
-is_display( [ map { "Existing line $_" } 2 .. 7 ],
+is_display( [ [TEXT("Existing line 2")],
+              [TEXT("Existing line 3")],
+              [TEXT("Existing line 4")],
+              [TEXT("Existing line 5")],
+              [TEXT("Existing line 6")],
+              [TEXT("Existing line 7")] ],
             'Display after shift' );
 
 is_cursorpos( 7, 0, 'Cursor position after shift' );
@@ -59,7 +70,8 @@ $scroller->shift( 3 );
 
 flush_tickit;
 
-is_termlog( [ SCROLLRECT(0,0,6,20, 3,0),
+is_termlog( [ SETBG(undef),
+              SCROLLRECT(0,0,6,20, 3,0),
               GOTO(3,0),
               SETPEN,
               PRINT("Existing line 8"),
@@ -78,7 +90,12 @@ is_termlog( [ SCROLLRECT(0,0,6,20, 3,0),
               GOTO(7,0) ],
             'Termlog after shift 3' );
 
-is_display( [ map { "Existing line $_" } 5 .. 10 ],
+is_display( [ [TEXT("Existing line 5")],
+              [TEXT("Existing line 6")],
+              [TEXT("Existing line 7")],
+              [TEXT("Existing line 8")],
+              [TEXT("Existing line 9")],
+              [TEXT("Existing line 10")] ],
             'Display after shift 3' );
 
 is_cursorpos( 7, 0, 'Cursor position after shift 3' );
@@ -87,7 +104,12 @@ $scroller->scroll_to_bottom;
 flush_tickit;
 $term->methodlog; # ignore the method log
 
-is_display( [ map { "Existing line $_" } 10 .. 15 ],
+is_display( [ [TEXT("Existing line 10")],
+              [TEXT("Existing line 11")],
+              [TEXT("Existing line 12")],
+              [TEXT("Existing line 13")],
+              [TEXT("Existing line 14")],
+              [TEXT("Existing line 15")] ],
             'Display after scroll_to_bottom' );
 
 $scroller->shift;
@@ -97,14 +119,24 @@ flush_tickit;
 is_termlog( [],
             'Termlog empty after shift at bottom' );
 
-is_display( [ map { "Existing line $_" } 10 .. 15 ],
+is_display( [ [TEXT("Existing line 10")],
+              [TEXT("Existing line 11")],
+              [TEXT("Existing line 12")],
+              [TEXT("Existing line 13")],
+              [TEXT("Existing line 14")],
+              [TEXT("Existing line 15")] ],
             'Display unchanged after shift at bottom' );
 
 $scroller->scroll_to_top;
 flush_tickit;
 $term->methodlog; # ignore the method log
 
-is_display( [ map { "Existing line $_" } 6 .. 11 ],
+is_display( [ [TEXT("Existing line 6")],
+              [TEXT("Existing line 7")],
+              [TEXT("Existing line 8")],
+              [TEXT("Existing line 9")],
+              [TEXT("Existing line 10")],
+              [TEXT("Existing line 11")] ],
             'Display after scroll_to_top' );
 
 $scroller->shift( 6 );
@@ -122,5 +154,9 @@ is_termlog( [ ( map { GOTO($_-12,0),
               GOTO(7,0) ],
             'Termlog after shift 6 at top' );
 
-is_display( [ map { "Existing line $_" } 12 .. 15 ],
+is_display( [ [TEXT("Existing line 12")],
+              [TEXT("Existing line 13")],
+              [TEXT("Existing line 14")],
+              [TEXT("Existing line 15")],
+              BLANKLINES(2) ],
             'Display after shift 6 at top' );

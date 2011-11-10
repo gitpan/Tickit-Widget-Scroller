@@ -10,7 +10,7 @@ use warnings;
 
 use base qw( Tickit::Widget::Scroller::Item::Text );
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 use Tickit::Utils qw( textwidth );
 
@@ -73,7 +73,7 @@ sub render
             my ( $substr, %tags ) = @_;
             my %pen;
             $pen{$_} = $tags{$_} for @Tickit::Pen::ALL_ATTRS;
-            $win->penprint( $substr, %pen );
+            $win->print( $substr, %pen );
             $spare -= textwidth $substr;
          },
          start => $chunks->[$lineidx][0],

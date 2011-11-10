@@ -10,7 +10,7 @@ use warnings;
 use base qw( Tickit::Widget );
 Tickit::Widget->VERSION( '0.06' );
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 use Carp;
 
@@ -137,6 +137,26 @@ sub reshape
    $self->SUPER::reshape;
 
    undef $self->{itemheights};
+}
+
+sub window_lost
+{
+   my $self = shift;
+   $self->SUPER::window_lost( @_ );
+
+   my ( $line, $offscreen ) = $self->item2line( -1, -1 );
+
+   $self->{pending_scroll_to_bottom} = 1 if defined $line;
+}
+
+sub window_gained
+{
+   my $self = shift;
+   $self->SUPER::window_gained( @_ );
+
+   if( delete $self->{pending_scroll_to_bottom} ) {
+      $self->scroll_to_bottom;
+   }
 }
 
 =head2 $scroller->push( @items )
@@ -491,6 +511,7 @@ sub item2line
    my $lines = $window->lines;
 
    my $items = $self->{items};
+   @$items or return;
 
    if( $want_itemidx < 0 ) {
       $want_itemidx += @$items;
@@ -542,10 +563,13 @@ sub item2line
 sub render
 {
    my $self = shift;
+   my %args = @_;
+
+   my $rect = $args{rect};
 
    my $win = $self->window or return;
 
-   $self->render_lines( 0, $win->lines );
+   $self->render_lines( $rect->top, $rect->bottom );
 }
 
 sub render_lines
@@ -622,10 +646,6 @@ sub on_key
 =head1 TODO
 
 =over 4
-
-=item *
-
-Item::RichText - will depend on L<String::Tagged>
 
 =item *
 

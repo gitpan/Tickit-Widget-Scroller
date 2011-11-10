@@ -4,7 +4,7 @@ use strict;
 
 use Test::More tests => 30;
 
-use Tickit::Test 0.07;
+use Tickit::Test 0.12;
 
 use Tickit::Widget::Scroller;
 use Tickit::Widget::Scroller::Item::Text;
@@ -45,11 +45,11 @@ is_termlog( [ SETPEN,
               PRINT("Item of text 3 ") ],
             'Termlog initially' );
 
-is_display( [ "Item of text 1 ",
-              "which is long",
-              "Item of text 2 ",
-              "which is long",
-              "Item of text 3 " ],
+is_display( [ [TEXT("Item of text 1 ")],
+              [TEXT("which is long")],
+              [TEXT("Item of text 2 ")],
+              [TEXT("which is long")],
+              [TEXT("Item of text 3 ")] ],
             'Display initially' );
 
 is( $scroller->item2line( 0,  0 ), 0, 'item2line 0, 0 initially' );
@@ -88,11 +88,11 @@ is_termlog( [ SETPEN,
               PRINT("Item of text 8 ") ],
             'Termlog after scroll +10' );
 
-is_display( [ "Item of text 6 ",
-              "which is long",
-              "Item of text 7 ",
-              "which is long",
-              "Item of text 8 " ],
+is_display( [ [TEXT("Item of text 6 ")],
+              [TEXT("which is long")],
+              [TEXT("Item of text 7 ")],
+              [TEXT("which is long")],
+              [TEXT("Item of text 8 ")] ],
             'Display after scroll +10' );
 
 is( $scroller->item2line( 0,  0 ), undef, 'item2line 0, 0 offscreen after scroll +10' );
@@ -108,7 +108,8 @@ $scroller->scroll( -1 );
 
 flush_tickit;
 
-is_termlog( [ SCROLLRECT(0,0,5,15, -1,0),
+is_termlog( [ SETBG(undef),
+              SCROLLRECT(0,0,5,15, -1,0),
               GOTO(0,0),
               SETPEN,
               PRINT("which is long"),
@@ -116,28 +117,29 @@ is_termlog( [ SCROLLRECT(0,0,5,15, -1,0),
               ERASECH(2) ],
             'Termlog after scroll -1' );
 
-is_display( [ "which is long",
-              "Item of text 6 ",
-              "which is long",
-              "Item of text 7 ",
-              "which is long" ],
+is_display( [ [TEXT("which is long")],
+              [TEXT("Item of text 6 ")],
+              [TEXT("which is long")],
+              [TEXT("Item of text 7 ")],
+              [TEXT("which is long")] ],
             'Display after scroll -1' );
 
 $scroller->scroll( +1 );
 
 flush_tickit;
 
-is_termlog( [ SCROLLRECT(0,0,5,15, +1,0),
+is_termlog( [ SETBG(undef),
+              SCROLLRECT(0,0,5,15, +1,0),
               GOTO(4,0),
               SETPEN,
               PRINT("Item of text 8 ") ],
             'Termlog after scroll +1' );
 
-is_display( [ "Item of text 6 ",
-              "which is long",
-              "Item of text 7 ",
-              "which is long",
-              "Item of text 8 " ],
+is_display( [ [TEXT("Item of text 6 ")],
+              [TEXT("which is long")],
+              [TEXT("Item of text 7 ")],
+              [TEXT("which is long")],
+              [TEXT("Item of text 8 ")] ],
             'Display after scroll +1' );
 
 $scroller->scroll( -10 );
@@ -167,11 +169,11 @@ is_termlog( [ SETPEN,
               PRINT("Item of text 3 ") ],
             'Termlog after scroll -10' );
 
-is_display( [ "Item of text 1 ",
-              "which is long",
-              "Item of text 2 ",
-              "which is long",
-              "Item of text 3 " ],
+is_display( [ [TEXT("Item of text 1 ")],
+              [TEXT("which is long")],
+              [TEXT("Item of text 2 ")],
+              [TEXT("which is long")],
+              [TEXT("Item of text 3 ")] ],
             'Display after scroll -10' );
 
 $scroller->scroll_to_bottom;
@@ -203,11 +205,11 @@ is_termlog( [ SETPEN,
               ERASECH(2) ],
             'Termlog after scroll_to_bottom' );
 
-is_display( [ "which is long",
-              "Item of text 8 ",
-              "which is long",
-              "Item of text 9 ",
-              "which is long" ],
+is_display( [ [TEXT("which is long")],
+              [TEXT("Item of text 8 ")],
+              [TEXT("which is long")],
+              [TEXT("Item of text 9 ")],
+              [TEXT("which is long")] ],
             'Display after scroll_to_bottom' );
 
 $scroller->scroll_to_top;
@@ -237,11 +239,11 @@ is_termlog( [ SETPEN,
               PRINT("Item of text 3 ") ],
             'Termlog after scroll_to_top' );
 
-is_display( [ "Item of text 1 ",
-              "which is long",
-              "Item of text 2 ",
-              "which is long",
-              "Item of text 3 " ],
+is_display( [ [TEXT("Item of text 1 ")],
+              [TEXT("which is long")],
+              [TEXT("Item of text 2 ")],
+              [TEXT("which is long")],
+              [TEXT("Item of text 3 ")] ],
             'Display after scroll_to_top' );
 
 $scroller->scroll_to( 2, 4, 0 ); # About halfway
@@ -271,9 +273,9 @@ is_termlog( [ SETPEN,
               PRINT("Item of text 6 ") ],
             'Termlog after scroll_to middle' );
 
-is_display( [ "Item of text 4 ",
-              "which is long",
-              "Item of text 5 ",
-              "which is long",
-              "Item of text 6 " ],
+is_display( [ [TEXT("Item of text 4 ")],
+              [TEXT("which is long")],
+              [TEXT("Item of text 5 ")],
+              [TEXT("which is long")],
+              [TEXT("Item of text 6 ")] ],
             'Display after scroll_to middle' );

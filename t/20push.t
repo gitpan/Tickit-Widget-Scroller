@@ -2,9 +2,9 @@
 
 use strict;
 
-use Test::More tests => 20;
+use Test::More tests => 21;
 
-use Tickit::Test 0.07;
+use Tickit::Test 0.12;
 
 use Tickit::Widget::Scroller;
 use Tickit::Widget::Scroller::Item::Text;
@@ -43,7 +43,7 @@ is_termlog( [ GOTO(0,0),
               GOTO(7,0) ],
             'Termlog after push' );
 
-is_display( [ "A line of text" ],
+is_display( [ [TEXT("A line of text")] ],
             'Display after push' );
 
 is_cursorpos( 7, 0, 'Cursor position after push' );
@@ -77,11 +77,11 @@ is_termlog( [ GOTO(1,0),
               GOTO(7,0) ],
             'Termlog after push 4' );
 
-is_display( [ "A line of text",
-              "Another line 1",
-              "Another line 2",
-              "Another line 3",
-              "Another line 4" ],
+is_display( [ [TEXT("A line of text")],
+              [TEXT("Another line 1")],
+              [TEXT("Another line 2")],
+              [TEXT("Another line 3")],
+              [TEXT("Another line 4")] ],
             'Display after push 4' );
 
 is_cursorpos( 7, 0, 'Cursor position after push 4' );
@@ -95,6 +95,7 @@ is_termlog( [ GOTO(5,0),
               PRINT("An item of text "),
               SETBG(undef),
               ERASECH(4),
+              SETBG(undef),
               SCROLLRECT(0,0,6,20, 1,0),
               GOTO(5,0),
               SETPEN,
@@ -104,12 +105,12 @@ is_termlog( [ GOTO(5,0),
               GOTO(7,0) ],
             'Termlog after push scroll' );
 
-is_display( [ "Another line 1",
-              "Another line 2",
-              "Another line 3",
-              "Another line 4",
-              "An item of text",
-              "that wraps" ],
+is_display( [ [TEXT("Another line 1")],
+              [TEXT("Another line 2")],
+              [TEXT("Another line 3")],
+              [TEXT("Another line 4")],
+              [TEXT("An item of text")],
+              [TEXT("that wraps")] ],
             'Display after push scroll' );
 
 is_cursorpos( 7, 0, 'Cursor position after push scroll' );
@@ -153,27 +154,44 @@ is_termlog( [ GOTO(0,0),
               GOTO(7,0) ],
             'Termlog after push 6' );
 
-is_display( [ "Another line 5",
-              "Another line 6",
-              "Another line 7",
-              "Another line 8",
-              "Another line 9",
-              "Another line 10" ],
+is_display( [ [TEXT("Another line 5")],
+              [TEXT("Another line 6")],
+              [TEXT("Another line 7")],
+              [TEXT("Another line 8")],
+              [TEXT("Another line 9")],
+              [TEXT("Another line 10")] ],
             'Display after push 6' );
 
 is_cursorpos( 7, 0, 'Cursor position after push 6' );
+
+$scroller->set_window( undef );
+
+$scroller->push( Tickit::Widget::Scroller::Item::Text->new( "A line while offscreen" ) );
+
+$scroller->set_window( $win );
+
+flush_tickit;
+$term->methodlog; # flush it
+
+is_display( [ [TEXT("Another line 7")],
+              [TEXT("Another line 8")],
+              [TEXT("Another line 9")],
+              [TEXT("Another line 10")],
+              [TEXT("A line while ")],
+              [TEXT("offscreen")] ],
+            'Display after push while offscreen' );
 
 $scroller->scroll_to_top;
 
 flush_tickit;
 $term->methodlog; # flush it
 
-is_display( [ "A line of text",
-              "Another line 1",
-              "Another line 2",
-              "Another line 3",
-              "Another line 4",
-              "An item of text" ],
+is_display( [ [TEXT("A line of text")],
+              [TEXT("Another line 1")],
+              [TEXT("Another line 2")],
+              [TEXT("Another line 3")],
+              [TEXT("Another line 4")],
+              [TEXT("An item of text")] ],
             'Display after scroll_to_top' );
 
 is_cursorpos( 7, 0, 'Cursor position after push scroll_to_top' );
@@ -185,12 +203,12 @@ $scroller->push(
 is_termlog( [],
             'Termlog empty after push at head' );
 
-is_display( [ "A line of text",
-              "Another line 1",
-              "Another line 2",
-              "Another line 3",
-              "Another line 4",
-              "An item of text" ],
+is_display( [ [TEXT("A line of text")],
+              [TEXT("Another line 1")],
+              [TEXT("Another line 2")],
+              [TEXT("Another line 3")],
+              [TEXT("Another line 4")],
+              [TEXT("An item of text")] ],
             'Display after push at head' );
 
 is_cursorpos( 7, 0, 'Cursor position after push at head' );

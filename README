@@ -1,5 +1,5 @@
 NAME
-    "Tickit::Widget::Scroller" - a widget displaying a scrollable collection
+    `Tickit::Widget::Scroller' - a widget displaying a scrollable collection
     of items
 
 SYNOPSIS
@@ -27,38 +27,32 @@ DESCRIPTION
     list.
 
     A Scroller widget stores a list of instances implementing the
-    "Tickit::Widget::Scroller::Item" interface.
+    `Tickit::Widget::Scroller::Item' interface.
 
 KEYBINDINGS
     The following keys are bound
 
     * Down
-
       Scroll one line down
 
     * Up
-
       Scroll one line up
 
     * PageDown
-
       Scroll half a window down
 
     * PageUp
-
       Scroll half a window up
 
     * Ctrl-Home
-
       Scroll to the top
 
     * Ctrl-End
-
       Scroll to the bottom
 
 CONSTRUCTOR
   $scroller = Tickit::Widget::Scroller->new
-    Constructs a new "Tickit::Widget::Scroller" object. The new object will
+    Constructs a new `Tickit::Widget::Scroller' object. The new object will
     start with an empty list of items.
 
 METHODS
@@ -68,7 +62,7 @@ METHODS
     If the Scroller is already at the tail (that is, the last line of the
     last item is on display), the newly added items will be displayed,
     possibly by scrolling downward if required. While the scroller isn't
-    adjusted, by using any of the "scroll" methods, it will remain following
+    adjusted, by using any of the `scroll' methods, it will remain following
     the tail of the items, scrolling itself upwards as more are added.
 
   $scroller->shift( $count )
@@ -79,52 +73,51 @@ METHODS
     remaining item is now at the top of the display.
 
   $scroller->scroll( $delta )
-    Move the display up or down by the given $delta amount; with positive
+    Move the display up or down by the given `$delta' amount; with positive
     moving down. This will be a physical count of displayed lines; if some
     items occupy multiple lines, then fewer items may be scrolled than
     lines.
 
   $scroller->scroll_to( $line, $itemidx, $itemline )
-    Moves the display up or down so that display line $line contains line
-    $itemline of item $itemidx. Any of these counts may be negative to count
-    backwards from the display lines, items, or lines within the item.
+    Moves the display up or down so that display line `$line' contains line
+    `$itemline' of item `$itemidx'. Any of these counts may be negative to
+    count backwards from the display lines, items, or lines within the item.
 
   $scroller->scroll_to_top( $itemidx, $itemline )
-    Shortcut for "scroll_to" to set the top line of display; where $line is
-    0. If $itemline is undefined, it will be passed as 0. If $itemidx is
-    also undefined, it will be passed as 0. Calling this method with no
+    Shortcut for `scroll_to' to set the top line of display; where `$line'
+    is 0. If `$itemline' is undefined, it will be passed as 0. If `$itemidx'
+    is also undefined, it will be passed as 0. Calling this method with no
     arguments, therefore scrolls to the very top of the display.
 
   $scroller->scroll_to_bottom( $itemidx, $itemline )
-    Shortcut for "scroll_to" to set the bottom line of display; where $line
-    is -1. If $itemline is undefined, it will be passed as -1. If $itemidx
-    is also undefined, it will be passed as -1. Calling this method with no
-    arguments, therefore scrolls to the very bottom of the display.
+    Shortcut for `scroll_to' to set the bottom line of display; where
+    `$line' is -1. If `$itemline' is undefined, it will be passed as -1. If
+    `$itemidx' is also undefined, it will be passed as -1. Calling this
+    method with no arguments, therefore scrolls to the very bottom of the
+    display.
 
   $itemidx = $scroller->line2item( $line )
   ( $itemidx, $itemline ) = $scroller->line2item( $line )
     Returns the item index currently on display at the given line of the
     window. In list context, also returns the line number within item. If no
     window has been set, or there is no item on display at that line,
-    "undef" or an empty list are returned. $line may be negative to count
-    backward from the last line on display; the last line taking -1.
+    `undef' or an empty list are returned. `$line' may be negative to count
+    backward from the last line on display; the last line taking `-1'.
 
   $line = $scroller->item2line( $itemidx, $itemline )
   ( $line, $offscreen ) = $scroller->item2line( $itemidx, $itemline )
     Returns the display line in the window of the given line of the item at
-    the given index. $itemidx may be given negative, to count backwards from
-    the last item. $itemline may be negative to count backward from the last
-    line of the item.
+    the given index. `$itemidx' may be given negative, to count backwards
+    from the last item. `$itemline' may be negative to count backward from
+    the last line of the item.
 
     In list context, also returns a value describing the offscreen nature of
-    the item. For items fully on display, this value is "undef". If the
+    the item. For items fully on display, this value is `undef'. If the
     given line of the given item is not on display because it is scrolled
     off either the top or bottom of the window, this value will be either
-    "above" or "below" respectively.
+    `"above"' or `"below"' respectively.
 
 TODO
-    *   Item::RichText - will depend on String::Tagged
-
     *   Abstract away the "item storage model" out of the actual widget.
         Implement more storage models, such as database-driven ones.. more
         dynamic.

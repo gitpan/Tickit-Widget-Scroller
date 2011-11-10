@@ -40,5 +40,5 @@ is_termlog( [ GOTO(0,0),
               ERASECH(65) ],
             'Termlog for render fullwidth' );
 
-is_display( [ "My message here" ],
+is_display( [ [TEXT("My "), TEXT("message",b=>1), BLANK(1), TEXT("here",u=>1)] ],
             'Display for render fullwidth' );

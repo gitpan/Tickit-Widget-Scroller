@@ -2,13 +2,13 @@
 
 use strict;
 
-use Test::More tests => 12;
+use Test::More tests => 11;
 
-use Tickit::Test;
+use Tickit::Test 0.12;
 
 use Tickit::Widget::Scroller::Item::Text;
 
-my $win = mk_window;
+my ( $term, $win ) = mk_term_and_window;
 
 my $item = Tickit::Widget::Scroller::Item::Text->new( "My message here" );
 
@@ -29,11 +29,11 @@ is_termlog( [ GOTO(0,0),
               ERASECH(65) ],
             'Termlog for render fullwidth' );
 
-is_display( [ "My message here" ],
+is_display( [ [TEXT("My message here")] ],
             'Display for render fullwidth' );
 
 $win->clear;
-is_termlog( [ SETPEN, CLEAR ] );
+$term->methodlog; # clear log
 
 my $subwin = $win->make_sub( 0, 0, 10, 12 );
 
@@ -55,7 +55,8 @@ is_termlog( [ GOTO(0,0),
               ERASECH(8) ],
             'Termlog for render width 12' );
 
-is_display( [ "My message", "here" ],
+is_display( [ [TEXT("My message")],
+              [TEXT("here")] ],
             'Display for render width 12' );
 
 my $indenteditem = Tickit::Widget::Scroller::Item::Text->new( "My message here", indent => 4 );
@@ -77,8 +78,9 @@ is_termlog( [ GOTO(0,0),
               SETPEN,
               PRINT("here"),
               SETBG(undef),
-              ERASECH(8) ],
+              ERASECH(4) ],
             'Termlog for render width 12 with indent' );
 
-is_display( [ "My message", "    here" ],
+is_display( [ [TEXT("My message")],
+              [TEXT("    here")] ],
             'Display for render width 12 with indent' );

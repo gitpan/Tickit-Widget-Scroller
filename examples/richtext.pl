@@ -45,12 +45,7 @@ my $entry = Tickit::Widget::Entry->new(
    bg => 2,
 );
 
-use IO::Async::Loop;
-
-my $loop = IO::Async::Loop->new;
-
 my $tickit = Tickit->new;
-$loop->add( $tickit );
 
 my $vbox = Tickit::Widget::VBox->new;
 

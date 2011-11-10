@@ -1,5 +1,11 @@
 Revision history for Tickit-Widget-Scroller
 
+0.03    CHANGES:
+         * Use Window->print rather than Window->penprint
+         * Handle ->item2line with no items
+         * Preserve 'at-bottom'ness while not onscreen, restore it later
+         * Use new is_display TEXT() assertions from Tickit 0.12
+
 0.02    CHANGES:
          * Added Tickit::Widget::Scroller::Item::RichText
          * New API for ->item2line
