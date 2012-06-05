@@ -10,7 +10,7 @@ use warnings;
 
 use base qw( Tickit::Widget::Scroller::Item::Text );
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 use Tickit::Utils qw( textwidth );
 

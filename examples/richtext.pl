@@ -11,7 +11,7 @@ use Tickit::Widget::Scroller::Item::RichText;
 
 use String::Tagged;
 
-my $scroller = Tickit::Widget::Scroller->new;
+my $scroller = Tickit::Widget::Scroller->new( gravity => "bottom" );
 
 for my $i ( 0 .. 100 ) {
    my $text = String::Tagged->new( "<Rand $i>: " );

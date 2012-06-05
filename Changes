@@ -1,5 +1,9 @@
 Revision history for Tickit-Widget-Scroller
 
+0.04    CHANGES:
+         * Added 'gravity' parameter to control resize behaviour
+         * Respond to mouse wheel events by scrolling 5 lines at a time
+
 0.03    CHANGES:
          * Use Window->print rather than Window->penprint
          * Handle ->item2line with no items

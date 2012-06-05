@@ -9,7 +9,7 @@ use Tickit::Widget::Entry;
 use Tickit::Widget::Scroller;
 use Tickit::Widget::Scroller::Item::Text;
 
-my $scroller = Tickit::Widget::Scroller->new;
+my $scroller = Tickit::Widget::Scroller->new( gravity => "bottom" );
 
 for my $i ( 0 .. 100 ) {
    my $text = "<Rand $i>: ";

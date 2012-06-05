@@ -8,7 +8,7 @@ package Tickit::Widget::Scroller::Item::Text;
 use strict;
 use warnings;
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 use Tickit::Utils qw( textwidth cols2chars );
 

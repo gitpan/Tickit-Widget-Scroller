@@ -1,7 +1,7 @@
 #  You may distribute under the terms of either the GNU General Public License
 #  or the Artistic License (the same terms as Perl itself)
 #
-#  (C) Paul Evans, 2011 -- leonerd@leonerd.org.uk
+#  (C) Paul Evans, 2011-2012 -- leonerd@leonerd.org.uk
 
 package Tickit::Widget::Scroller;
 
@@ -10,7 +10,7 @@ use warnings;
 use base qw( Tickit::Widget );
 Tickit::Widget->VERSION( '0.06' );
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 use Carp;
 
@@ -87,10 +87,21 @@ Scroll to the bottom
 
 =cut
 
-=head2 $scroller = Tickit::Widget::Scroller->new
+=head2 $scroller = Tickit::Widget::Scroller->new( %args )
 
 Constructs a new C<Tickit::Widget::Scroller> object. The new object will start
 with an empty list of items.
+
+Takes the following named arguments:
+
+=over 8
+
+=item gravity => STRING
+
+Optional. If given the value C<bottom>, resize events will attempt to preserve
+the item at the bottom of the screen. Otherwise, will preserve the top.
+
+=back
 
 =cut
 
@@ -99,12 +110,20 @@ sub new
    my $class = shift;
    my %args = @_;
 
+   my $gravity = delete $args{gravity} || "top";
+
    my $self = $class->SUPER::new( %args );
+
+   # We're going to cache window height because we need pre-resize height
+   # during resize event
+   $self->{window_lines} = undef;
 
    $self->{items} = [];
 
    $self->{start_item} = 0;
    $self->{start_partial} = 0;
+
+   $self->{gravity_bottom} = $gravity eq "bottom";
 
    return $self;
 }
@@ -134,9 +153,19 @@ sub _itemheight
 sub reshape
 {
    my $self = shift;
+
+   my ( $itemidx, $itemline ) = $self->line2item( $self->{gravity_bottom} ? -1 : 0 );
+   $itemline -= $self->_itemheight( $itemidx ) if $self->{gravity_bottom} and defined $itemidx;
+
    $self->SUPER::reshape;
 
+   $self->{window_lines} = $self->window->lines;
+
    undef $self->{itemheights};
+
+   if( defined $itemidx ) {
+      $self->scroll_to( $self->{gravity_bottom} ? -1 : 0, $itemidx, $itemline );
+   }
 }
 
 sub window_lost
@@ -147,12 +176,18 @@ sub window_lost
    my ( $line, $offscreen ) = $self->item2line( -1, -1 );
 
    $self->{pending_scroll_to_bottom} = 1 if defined $line;
+
+   undef $self->{window_lines};
 }
 
 sub window_gained
 {
    my $self = shift;
-   $self->SUPER::window_gained( @_ );
+   my ( $win ) = @_;
+
+   $self->{window_lines} = $win->lines;
+
+   $self->SUPER::window_gained( $win );
 
    if( delete $self->{pending_scroll_to_bottom} ) {
       $self->scroll_to_bottom;
@@ -182,7 +217,7 @@ sub push
    push @$items, @_;
 
    if( my $win = $self->window ) {
-      my $lines = $win->lines;
+      my $lines = $self->{window_lines};
 
       my $oldlast = $oldsize ? $self->item2line( $oldsize-1, -1 ) : -1;
 
@@ -309,7 +344,7 @@ sub scroll
       $self->{start_item}    = $itemidx;
       $self->{start_partial} = $partial;
 
-      my $lines = $window->lines;
+      my $lines = $self->{window_lines};
 
       if( abs( $scroll_amount ) < $lines and 
           $window->scroll( $scroll_amount, 0 ) ) {
@@ -343,7 +378,7 @@ sub scroll_to
    my ( $line, $itemidx, $itemline ) = @_;
 
    my $window = $self->window or return;
-   my $lines = $window->lines;
+   my $lines = $self->{window_lines};
 
    my $items = $self->{items};
    @$items or return;
@@ -455,7 +490,7 @@ sub line2item
    my ( $line ) = @_;
 
    my $window = $self->window or return;
-   my $lines = $window->lines;
+   my $lines = $self->{window_lines};
 
    my $items = $self->{items};
 
@@ -508,7 +543,7 @@ sub item2line
    my ( $want_itemidx, $want_itemline ) = @_;
 
    my $window = $self->window or return;
-   my $lines = $window->lines;
+   my $lines = $self->{window_lines};
 
    my $items = $self->{items};
    @$items or return;
@@ -641,6 +676,16 @@ sub on_key
    }
 
    return 0;
+}
+
+sub on_mouse
+{
+   my $self = shift;
+   my ( $ev, $button_dir, $line, $col ) = @_;
+
+   return unless $ev eq "wheel";
+
+   $self->scroll( $button_dir eq "down" ? 5 : -5 );
 }
 
 =head1 TODO

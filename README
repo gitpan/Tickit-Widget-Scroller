@@ -51,9 +51,16 @@ KEYBINDINGS
       Scroll to the bottom
 
 CONSTRUCTOR
-  $scroller = Tickit::Widget::Scroller->new
+  $scroller = Tickit::Widget::Scroller->new( %args )
     Constructs a new `Tickit::Widget::Scroller' object. The new object will
     start with an empty list of items.
+
+    Takes the following named arguments:
+
+    gravity => STRING
+            Optional. If given the value `bottom', resize events will
+            attempt to preserve the item at the bottom of the screen.
+            Otherwise, will preserve the top.
 
 METHODS
   $scroller->push( @items )

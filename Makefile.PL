@@ -2,16 +2,16 @@
 use ExtUtils::MakeMaker;
 WriteMakefile
 (
-          'NAME' => 'Tickit::Widget::Scroller',
-          'VERSION_FROM' => 'lib/Tickit/Widget/Scroller.pm',
-          'PREREQ_PM' => {
-                           'String::Tagged' => 0,
-                           'Test::More' => 0,
-                           'Tickit::Test' => '0.12',
-                           'Tickit::Widget' => '0.11'
-                         },
-          'INSTALLDIRS' => 'site',
-          'EXE_FILES' => [],
-          'PL_FILES' => {}
-        )
+  'NAME' => 'Tickit::Widget::Scroller',
+  'VERSION_FROM' => 'lib/Tickit/Widget/Scroller.pm',
+  'PREREQ_PM' => {
+                   'String::Tagged' => 0,
+                   'Test::More' => 0,
+                   'Tickit::Test' => '0.12',
+                   'Tickit::Widget' => '0.11'
+                 },
+  'INSTALLDIRS' => 'site',
+  'EXE_FILES' => [],
+  'PL_FILES' => {}
+)
 ;

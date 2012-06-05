@@ -14,7 +14,9 @@ my $win = $rootwin->make_sub( 0, 0, 6, 20 );
 
 $rootwin->focus( 7, 0 );
 
-my $scroller = Tickit::Widget::Scroller->new;
+my $scroller = Tickit::Widget::Scroller->new(
+   gravity => "bottom",
+);
 
 $scroller->set_window( $win );
 

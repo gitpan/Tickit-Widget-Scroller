@@ -4,7 +4,7 @@
       "Paul Evans <leonerd@leonerd.org.uk>"
    ],
    "dynamic_config" : 1,
-   "generated_by" : "Module::Build version 0.38, CPAN::Meta::Converter version 2.112621",
+   "generated_by" : "Module::Build version 0.38, CPAN::Meta::Converter version 2.120630",
    "license" : [
       "perl_5"
    ],
@@ -16,12 +16,12 @@
    "prereqs" : {
       "build" : {
          "requires" : {
-            "Test::More" : 0
+            "Test::More" : "0"
          }
       },
       "runtime" : {
          "requires" : {
-            "String::Tagged" : 0,
+            "String::Tagged" : "0",
             "Tickit::Test" : "0.12",
             "Tickit::Widget" : "0.11"
          }
@@ -30,15 +30,15 @@
    "provides" : {
       "Tickit::Widget::Scroller" : {
          "file" : "lib/Tickit/Widget/Scroller.pm",
-         "version" : "0.03"
+         "version" : "0.04"
       },
       "Tickit::Widget::Scroller::Item::RichText" : {
          "file" : "lib/Tickit/Widget/Scroller/Item/RichText.pm",
-         "version" : "0.03"
+         "version" : "0.04"
       },
       "Tickit::Widget::Scroller::Item::Text" : {
          "file" : "lib/Tickit/Widget/Scroller/Item/Text.pm",
-         "version" : "0.03"
+         "version" : "0.04"
       }
    },
    "release_status" : "stable",
@@ -47,5 +47,5 @@
          "http://dev.perl.org/licenses/"
       ]
    },
-   "version" : "0.03"
+   "version" : "0.04"
 }
