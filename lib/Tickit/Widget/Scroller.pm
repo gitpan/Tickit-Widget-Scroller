@@ -10,7 +10,10 @@ use warnings;
 use base qw( Tickit::Widget );
 Tickit::Widget->VERSION( '0.06' );
 
-our $VERSION = '0.04';
+use Tickit::Window;
+use constant HAVE_HIDDEN_WINDOWS => $Tickit::Window::VERSION >= 0.17;
+
+our $VERSION = '0.05';
 
 use Carp;
 
@@ -276,7 +279,7 @@ sub shift :method
    splice @{ $self->{itemheights} }, 0, $count;
    $self->{start_item} -= $count;
 
-   if( !defined $lastline and $offscreen eq "below" ) {
+   if( !defined $lastline and defined $offscreen and $offscreen eq "below" ) {
       $self->scroll_to_top;
       # ->scroll implies $win->restore
    }
@@ -603,6 +606,7 @@ sub render
    my $rect = $args{rect};
 
    my $win = $self->window or return;
+   $win->is_visible or return if HAVE_HIDDEN_WINDOWS;
 
    $self->render_lines( $rect->top, $rect->bottom );
 }

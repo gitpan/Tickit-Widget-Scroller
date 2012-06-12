@@ -2,7 +2,7 @@
 
 use strict;
 
-use Test::More tests => 11;
+use Test::More tests => 14;
 
 use Tickit::Test 0.12;
 
@@ -84,3 +84,29 @@ is_termlog( [ GOTO(0,0),
 is_display( [ [TEXT("My message")],
               [TEXT("    here")] ],
             'Display for render width 12 with indent' );
+
+# Boundary condition in whitespace splitting
+{
+   $win->clear;
+   $term->methodlog; # clear log
+
+   my $item = Tickit::Widget::Scroller::Item::Text->new( "AAAA BBBB CCCC DDDD" );
+
+   is( $item->height_for_width( 9 ), 2, 'height_for_width 2 for splitting boundary' );
+
+   $item->render( $win, top => 0, firstline => 0, lastline => 1, width => 9, height => 2 );
+
+   flush_tickit;
+
+   is_termlog( [ GOTO(0,0),
+                 SETPEN,
+                 PRINT("AAAA BBBB"),
+                 GOTO(1,0),
+                 SETPEN,
+                 PRINT("CCCC DDDD") ],
+               'Termlog for render splitting boundary' );
+
+   is_display( [ [TEXT("AAAA BBBB")],
+                 [TEXT("CCCC DDDD")] ],
+               'Display for render splitting boundary' );
+}

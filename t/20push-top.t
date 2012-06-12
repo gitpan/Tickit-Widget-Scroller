@@ -94,16 +94,14 @@ flush_tickit;
 
 is_termlog( [ GOTO(5,0),
               SETPEN,
-              PRINT("An item of text "),
-              SETBG(undef),
-              ERASECH(4),
+              PRINT("An item of text that"),
               SETBG(undef),
               SCROLLRECT(0,0,6,20, 1,0),
               GOTO(5,0),
               SETPEN,
-              PRINT("that wraps"),
+              PRINT("wraps"),
               SETBG(undef),
-              ERASECH(10),
+              ERASECH(15),
               GOTO(7,0) ],
             'Termlog after push scroll' );
 
@@ -111,8 +109,8 @@ is_display( [ [TEXT("Another line 1")],
               [TEXT("Another line 2")],
               [TEXT("Another line 3")],
               [TEXT("Another line 4")],
-              [TEXT("An item of text")],
-              [TEXT("that wraps")] ],
+              [TEXT("An item of text that")],
+              [TEXT("wraps")] ],
             'Display after push scroll' );
 
 is_cursorpos( 7, 0, 'Cursor position after push scroll' );
@@ -193,7 +191,7 @@ is_display( [ [TEXT("A line of text")],
               [TEXT("Another line 2")],
               [TEXT("Another line 3")],
               [TEXT("Another line 4")],
-              [TEXT("An item of text")] ],
+              [TEXT("An item of text that")] ],
             'Display after scroll_to_top' );
 
 is_cursorpos( 7, 0, 'Cursor position after push scroll_to_top' );
@@ -210,7 +208,7 @@ is_display( [ [TEXT("A line of text")],
               [TEXT("Another line 2")],
               [TEXT("Another line 3")],
               [TEXT("Another line 4")],
-              [TEXT("An item of text")] ],
+              [TEXT("An item of text that")] ],
             'Display after push at head' );
 
 is_cursorpos( 7, 0, 'Cursor position after push at head' );

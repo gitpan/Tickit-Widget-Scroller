@@ -60,9 +60,9 @@ $win->resize( 5, 20 );
 
 flush_tickit;
 
-is_display( [ "A line of content",
-              "at line 1",
-              "A line of content",
-              "at line 2",
-              "A line of content", ],
+is_display( [ "A line of content at",
+              "line 1",
+              "A line of content at",
+              "line 2",
+              "A line of content at", ],
             'Display after resize fewer columns' );

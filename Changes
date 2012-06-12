@@ -1,5 +1,9 @@
 Revision history for Tickit-Widget-Scroller
 
+0.05    CHANGES:
+         * Bugfix to item wrapping boundary condition when a word ends exactly
+           at the righthand boundary
+
 0.04    CHANGES:
          * Added 'gravity' parameter to control resize behaviour
          * Respond to mouse wheel events by scrolling 5 lines at a time

@@ -30,15 +30,15 @@
    "provides" : {
       "Tickit::Widget::Scroller" : {
          "file" : "lib/Tickit/Widget/Scroller.pm",
-         "version" : "0.04"
+         "version" : "0.05"
       },
       "Tickit::Widget::Scroller::Item::RichText" : {
          "file" : "lib/Tickit/Widget/Scroller/Item/RichText.pm",
-         "version" : "0.04"
+         "version" : "0.05"
       },
       "Tickit::Widget::Scroller::Item::Text" : {
          "file" : "lib/Tickit/Widget/Scroller/Item/Text.pm",
-         "version" : "0.04"
+         "version" : "0.05"
       }
    },
    "release_status" : "stable",
@@ -47,5 +47,5 @@
          "http://dev.perl.org/licenses/"
       ]
    },
-   "version" : "0.04"
+   "version" : "0.05"
 }

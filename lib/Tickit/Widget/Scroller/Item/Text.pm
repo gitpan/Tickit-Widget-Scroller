@@ -1,14 +1,14 @@
 #  You may distribute under the terms of either the GNU General Public License
 #  or the Artistic License (the same terms as Perl itself)
 #
-#  (C) Paul Evans, 2011 -- leonerd@leonerd.org.uk
+#  (C) Paul Evans, 2011-2012 -- leonerd@leonerd.org.uk
 
 package Tickit::Widget::Scroller::Item::Text;
 
 use strict;
 use warnings;
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 use Tickit::Utils qw( textwidth cols2chars );
 
@@ -104,7 +104,7 @@ sub height_for_width
       my $indent = ( @chunks && $self->{indent} ) ? $self->{indent} : 0;
       my $eol_ch = cols2chars $text, $width - $indent;
 
-      if( $eol_ch < length $text ) {
+      if( $eol_ch < length $text && substr( $text, $eol_ch, 1 ) =~ m/\S/ ) {
          # TODO: This surely must be possible without substr()ing a temporary
          substr( $text, 0, $eol_ch ) =~ m/\S+$/ and $-[0] > 0 and $eol_ch = $-[0];
       }
@@ -136,7 +136,8 @@ sub render
 
    foreach my $lineidx ( $args{firstline} .. $args{lastline} ) {
       my $indent = ( $lineidx && $self->{indent} ) ? $self->{indent} : 0;
-      my $chunk = substr $text, $chunks->[$lineidx][0], $chunks->[$lineidx][1];
+      my ( $offset, $len ) = @{ $chunks->[$lineidx] };
+      my $chunk = substr $text, $offset, $len;
 
       $win->goto( $args{top} + $lineidx, 0 );
       $win->erasech( $indent, 1 ) if $indent;
