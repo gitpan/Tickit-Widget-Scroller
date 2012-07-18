@@ -1,7 +1,7 @@
 #  You may distribute under the terms of either the GNU General Public License
 #  or the Artistic License (the same terms as Perl itself)
 #
-#  (C) Paul Evans, 2011 -- leonerd@leonerd.org.uk
+#  (C) Paul Evans, 2011-2012 -- leonerd@leonerd.org.uk
 
 package Tickit::Widget::Scroller::Item::RichText;
 
@@ -10,7 +10,7 @@ use warnings;
 
 use base qw( Tickit::Widget::Scroller::Item::Text );
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 use Tickit::Utils qw( textwidth );
 
@@ -45,43 +45,26 @@ and values.
 
 =cut
 
-sub text
+sub _build_chunks_for
 {
    my $self = shift;
-   return $self->{text}->str;
-}
+   my ( $str ) = @_;
 
-sub render
-{
-   my $self = shift;
-   my ( $win, %args ) = @_;
+   my @chunks;
 
-   my $text = $self->{text};
-   my $chunks = $self->{chunks};
+   $str->iter_substr_nooverlap(
+      sub {
+         my ( $substr, %tags ) = @_;
+         my $pen = Tickit::Pen->new_from_attrs( \%tags );
+         # Don't worry if extra tags left over, they just aren't rendering attributes
+         my @lines = split m/\n/, $substr;
+         my $lastline = pop @lines;
+         push @chunks, [ $_, textwidth( $_ ), pen => $pen, linebreak => 1 ] for @lines;
+         push @chunks, [ $lastline, textwidth( $lastline ), pen => $pen ];
+      },
+   );
 
-   foreach my $lineidx ( $args{firstline} .. $args{lastline} ) {
-      my $spare = $args{width};
-
-      my $indent = ( $lineidx && $self->{indent} ) ? $self->{indent} : 0;
-      $spare -= $indent;
-
-      $win->goto( $args{top} + $lineidx, 0 );
-      $win->erasech( $indent, 1 ) if $indent;
-
-      $text->iter_substr_nooverlap(
-         sub {
-            my ( $substr, %tags ) = @_;
-            my %pen;
-            $pen{$_} = $tags{$_} for @Tickit::Pen::ALL_ATTRS;
-            $win->print( $substr, %pen );
-            $spare -= textwidth $substr;
-         },
-         start => $chunks->[$lineidx][0],
-         len   => $chunks->[$lineidx][1],
-      );
-
-      $win->erasech( $spare ) if $spare >  0;
-   }
+   return @chunks;
 }
 
 =head1 AUTHOR

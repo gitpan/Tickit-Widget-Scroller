@@ -2,7 +2,7 @@
 
 use strict;
 
-use Test::More tests => 14;
+use Test::More tests => 18;
 
 use Tickit::Test 0.12;
 
@@ -14,7 +14,9 @@ my $item = Tickit::Widget::Scroller::Item::Text->new( "My message here" );
 
 isa_ok( $item, "Tickit::Widget::Scroller::Item::Text", '$item' );
 
-is( $item->text, "My message here" );
+is_deeply( [ $item->chunks ],
+           [ [ "My message here", 15 ] ],
+           '$item->chunks' );
 
 is( $item->height_for_width( 80 ), 1, 'height_for_width 80' );
 
@@ -109,4 +111,39 @@ is_display( [ [TEXT("My message")],
    is_display( [ [TEXT("AAAA BBBB")],
                  [TEXT("CCCC DDDD")] ],
                'Display for render splitting boundary' );
+}
+
+# Linefeeds
+{
+   $win->clear;
+   $term->methodlog; # clear log
+
+   my $item = Tickit::Widget::Scroller::Item::Text->new( "Some more text\nwith linefeeds" );
+
+   is_deeply( [ $item->chunks ],
+              [ [ "Some more text", 14, linebreak => 1 ],
+                [ "with linefeeds", 14 ] ],
+              '$item->chunks with linefeeds' );
+
+   is( $item->height_for_width( 80 ), 2, 'height_for_width 2 with linefeeds' );
+
+   $item->render( $win, top => 0, firstline => 0, lastline => 1, width => 80, height => 2 );
+
+   flush_tickit;
+
+   is_termlog( [ GOTO(0,0),
+                 SETPEN,
+                 PRINT("Some more text"),
+                 SETPEN,
+                 ERASECH(66),
+                 GOTO(1,0),
+                 SETPEN,
+                 PRINT("with linefeeds"),
+                 SETPEN,
+                 ERASECH(66) ],
+               'Termlog for render with linefeeds' );
+
+   is_display( [ [TEXT("Some more text")],
+                 [TEXT("with linefeeds")] ],
+               'Display for render with linefeeds' );
 }

@@ -8,7 +8,7 @@ package Tickit::Widget::Scroller::Item::Text;
 use strict;
 use warnings;
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 use Tickit::Utils qw( textwidth cols2chars );
 
@@ -63,11 +63,12 @@ sub new
    my ( $text, %opts ) = @_;
 
    my $self = bless {
-      text => $text,
-      chunks => [],
+      lineruns => [],
    }, $class;
 
    $self->{indent} = $opts{indent} if defined $opts{indent};
+
+   $self->{chunks} = [ $self->_build_chunks_for( $text ) ];
 
    return $self;
 }
@@ -76,16 +77,46 @@ sub new
 
 =cut
 
-=head2 $text = $item->text
+=head2 @chunks = $item->chunks
 
-Returns the text string displayed by this item.
+Returns the chunks of text displayed by this item. Each chunk is represented
+by an ARRAY reference of three fields, giving the text string, its width in
+columns, and various options
+
+ [ $text, $width, %opts ]
+
+Recognised options are:
+
+=over 8
+
+=item pen => Tickit::Pen
+
+Pen to render the chunk with.
+
+=item linebreak => BOOL
+
+If true, force a linebreak after this chunk; the next one starts on the
+following line.
+
+=back
 
 =cut
 
-sub text
+sub _build_chunks_for
 {
    my $self = shift;
-   return $self->{text};
+   my ( $text ) = @_;
+
+   my @lines = split m/\n/, $text;
+   my $lastline = pop @lines;
+   return ( map { [ $_, textwidth( $_ ), linebreak => 1 ] } @lines ),
+            [ $lastline, textwidth( $lastline ) ];
+}
+
+sub chunks
+{
+   my $self = shift;
+   return @{ $self->{chunks} };
 }
 
 sub height_for_width
@@ -95,30 +126,50 @@ sub height_for_width
 
    $self->{width} = $width;
 
-   my $text = $self->text;
-   $self->{chunks} = \my @chunks;
+   my @chunks = $self->chunks;
+   $self->{lineruns} = \my @lineruns;
+   push @lineruns, my $thisline = [];
 
-   my $pos_ch = 0;
+   my $line_remaining = $width;
 
-   while( length $text ) {
-      my $indent = ( @chunks && $self->{indent} ) ? $self->{indent} : 0;
-      my $eol_ch = cols2chars $text, $width - $indent;
+   while( @chunks ) {
+      my $chunk = shift @chunks;
+      my ( $text, $textwidth, %opts ) = @$chunk;
 
-      if( $eol_ch < length $text && substr( $text, $eol_ch, 1 ) =~ m/\S/ ) {
-         # TODO: This surely must be possible without substr()ing a temporary
-         substr( $text, 0, $eol_ch ) =~ m/\S+$/ and $-[0] > 0 and $eol_ch = $-[0];
+      if( $textwidth <= $line_remaining ) {
+         push @$thisline, [ $text, $textwidth, $opts{pen} ];
+         $line_remaining -= $textwidth;
+      }
+      else {
+         # Split this chunk at most $line_remaining chars
+         my $eol_ch = cols2chars $text, $line_remaining;
+
+         if( $eol_ch < length $text && substr( $text, $eol_ch, 1 ) =~ m/\S/ ) {
+            # TODO: This surely must be possible without substr()ing a temporary
+            substr( $text, 0, $eol_ch ) =~ m/\S+$/ and $-[0] > 0 and $eol_ch = $-[0];
+         }
+
+         my $partial_text = substr( $text, 0, $eol_ch );
+         my $partial_chunk = [ $partial_text, textwidth( $partial_text ), $opts{pen} ];
+         push @$thisline, $partial_chunk;
+
+         my $bol_ch = pos $text = $eol_ch;
+         $text =~ m/\G\s+/g and $bol_ch = $+[0];
+
+         my $remaining_text = substr( $text, $bol_ch );
+         my $remaining_chunk = [ $remaining_text, textwidth( $remaining_text ), %opts ];
+         unshift @chunks, $remaining_chunk;
+
+         $line_remaining = 0;
       }
 
-      push @chunks, [ $pos_ch, $eol_ch ];
-
-      my $bol_ch = pos $text = $eol_ch;
-      $text =~ m/\G\s+/g and $bol_ch = $+[0];
-
-      substr $text, 0, $bol_ch, "";
-      $pos_ch += $bol_ch;
+      if( ( $line_remaining == 0 or $opts{linebreak} ) and @chunks ) {
+         push @lineruns, $thisline = [];
+         $line_remaining = $width - ( $self->{indent} || 0 );
+      }
    }
 
-   return scalar @chunks;
+   return scalar @lineruns;
 }
 
 sub render
@@ -131,19 +182,22 @@ sub render
    # Rechunk if width changed
    $self->height_for_width( $cols ) if $cols != $self->{width};
 
-   my $text = $self->text;
-   my $chunks = $self->{chunks};
+   my $lineruns = $self->{lineruns};
 
    foreach my $lineidx ( $args{firstline} .. $args{lastline} ) {
       my $indent = ( $lineidx && $self->{indent} ) ? $self->{indent} : 0;
-      my ( $offset, $len ) = @{ $chunks->[$lineidx] };
-      my $chunk = substr $text, $offset, $len;
 
       $win->goto( $args{top} + $lineidx, 0 );
       $win->erasech( $indent, 1 ) if $indent;
-      $win->print( $chunk );
 
-      my $spare = $cols - textwidth $chunk;
+      my $spare = $cols;
+      foreach my $chunk ( @{ $lineruns->[$lineidx] } ) {
+         my ( $text, $width, $pen ) = @$chunk;
+
+         $win->print( $text, $pen ? ( $pen ) : () );
+         $spare -= $width;
+      }
+
       $win->erasech( $spare ) if $spare > 0;
    }
 }

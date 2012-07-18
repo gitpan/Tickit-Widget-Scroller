@@ -2,14 +2,14 @@
 
 use strict;
 
-use Test::More tests => 5;
+use Test::More tests => 6;
 
 use Tickit::Test;
 
 use String::Tagged;
 use Tickit::Widget::Scroller::Item::RichText;
 
-my $win = mk_window;
+my ( $term, $win ) = mk_term_and_window;
 
 my $str = String::Tagged->new( "My message here" );
 $str->apply_tag(  3, 7, b => 1 );
@@ -19,7 +19,12 @@ my $item = Tickit::Widget::Scroller::Item::RichText->new( $str );
 
 isa_ok( $item, "Tickit::Widget::Scroller::Item::Text", '$item' );
 
-is( $item->text, "My message here" );
+is_deeply( [ $item->chunks ],
+           [ [ "My ",     3, pen => Tickit::Pen->new() ],
+             [ "message", 7, pen => Tickit::Pen->new( b => 1 ) ],
+             [ " ",       1, pen => Tickit::Pen->new() ],
+             [ "here",    4, pen => Tickit::Pen->new( u => 1 ) ] ],
+           '$item->chunks' );
 
 is( $item->height_for_width( 80 ), 1, 'height_for_width 80' );
 
@@ -42,3 +47,21 @@ is_termlog( [ GOTO(0,0),
 
 is_display( [ [TEXT("My "), TEXT("message",b=>1), BLANK(1), TEXT("here",u=>1)] ],
             'Display for render fullwidth' );
+
+# Linefeeds
+{
+   $win->clear;
+   $term->methodlog; # clear log
+
+   my $str = String::Tagged->new( "Another message\nwith linefeeds" );
+   $str->apply_tag( 8, 12, b => 1 );
+
+   my $item = Tickit::Widget::Scroller::Item::RichText->new( $str );
+
+   is_deeply( [ $item->chunks ],
+              [ [ "Another ",    8, pen => Tickit::Pen->new() ],
+                [ "message",     7, pen => Tickit::Pen->new( b => 1 ), linebreak => 1 ],
+                [ "with",        4, pen => Tickit::Pen->new( b => 1 ) ], 
+                [ " linefeeds", 10, pen => Tickit::Pen->new() ] ],
+              '$item->chunks with linefeeds' );
+}

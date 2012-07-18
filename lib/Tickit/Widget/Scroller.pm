@@ -13,7 +13,7 @@ Tickit::Widget->VERSION( '0.06' );
 use Tickit::Window;
 use constant HAVE_HIDDEN_WINDOWS => $Tickit::Window::VERSION >= 0.17;
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 use Carp;
 

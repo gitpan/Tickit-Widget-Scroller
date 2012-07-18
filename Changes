@@ -1,5 +1,8 @@
 Revision history for Tickit-Widget-Scroller
 
+0.06    CHANGES:
+         * Allow linefeeds in Text and RichText items
+
 0.05    CHANGES:
          * Bugfix to item wrapping boundary condition when a word ends exactly
            at the righthand boundary
