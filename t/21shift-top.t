@@ -20,7 +20,7 @@ my $scroller = Tickit::Widget::Scroller->new(
 
 $scroller->push(
    Tickit::Widget::Scroller::Item::Text->new( "Existing line $_" ),
-) for 1 .. 15;
+) for 1 .. 20;
 
 $scroller->set_window( $win );
 
@@ -106,12 +106,12 @@ $scroller->scroll_to_bottom;
 flush_tickit;
 $term->methodlog; # ignore the method log
 
-is_display( [ [TEXT("Existing line 10")],
-              [TEXT("Existing line 11")],
-              [TEXT("Existing line 12")],
-              [TEXT("Existing line 13")],
-              [TEXT("Existing line 14")],
-              [TEXT("Existing line 15")] ],
+is_display( [ [TEXT("Existing line 15")],
+              [TEXT("Existing line 16")],
+              [TEXT("Existing line 17")],
+              [TEXT("Existing line 18")],
+              [TEXT("Existing line 19")],
+              [TEXT("Existing line 20")] ],
             'Display after scroll_to_bottom' );
 
 $scroller->shift;
@@ -121,12 +121,12 @@ flush_tickit;
 is_termlog( [],
             'Termlog empty after shift at bottom' );
 
-is_display( [ [TEXT("Existing line 10")],
-              [TEXT("Existing line 11")],
-              [TEXT("Existing line 12")],
-              [TEXT("Existing line 13")],
-              [TEXT("Existing line 14")],
-              [TEXT("Existing line 15")] ],
+is_display( [ [TEXT("Existing line 15")],
+              [TEXT("Existing line 16")],
+              [TEXT("Existing line 17")],
+              [TEXT("Existing line 18")],
+              [TEXT("Existing line 19")],
+              [TEXT("Existing line 20")] ],
             'Display unchanged after shift at bottom' );
 
 $scroller->scroll_to_top;
@@ -149,10 +149,7 @@ is_termlog( [ ( map { GOTO($_-12,0),
                       SETPEN,
                       PRINT("Existing line $_"),
                       SETBG(undef),
-                      ERASECH(4) } 12 .. 15 ),
-              ( map { GOTO($_,0),
-                      SETBG(undef),
-                      ERASECH(20) } 4 .. 5 ),
+                      ERASECH(4) } 12 .. 17 ),
               GOTO(7,0) ],
             'Termlog after shift 6 at top' );
 
@@ -160,5 +157,6 @@ is_display( [ [TEXT("Existing line 12")],
               [TEXT("Existing line 13")],
               [TEXT("Existing line 14")],
               [TEXT("Existing line 15")],
-              BLANKLINES(2) ],
+              [TEXT("Existing line 16")],
+              [TEXT("Existing line 17")] ],
             'Display after shift 6 at top' );

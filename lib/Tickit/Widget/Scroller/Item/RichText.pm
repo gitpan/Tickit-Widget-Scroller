@@ -10,7 +10,7 @@ use warnings;
 
 use base qw( Tickit::Widget::Scroller::Item::Text );
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 use Tickit::Utils qw( textwidth );
 
@@ -57,7 +57,7 @@ sub _build_chunks_for
          my ( $substr, %tags ) = @_;
          my $pen = Tickit::Pen->new_from_attrs( \%tags );
          # Don't worry if extra tags left over, they just aren't rendering attributes
-         my @lines = split m/\n/, $substr;
+         my @lines = split m/\n/, $substr or return;
          my $lastline = pop @lines;
          push @chunks, [ $_, textwidth( $_ ), pen => $pen, linebreak => 1 ] for @lines;
          push @chunks, [ $lastline, textwidth( $lastline ), pen => $pen ];

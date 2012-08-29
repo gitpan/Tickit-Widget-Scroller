@@ -13,7 +13,7 @@ Tickit::Widget->VERSION( '0.06' );
 use Tickit::Window;
 use constant HAVE_HIDDEN_WINDOWS => $Tickit::Window::VERSION >= 0.17;
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 use Carp;
 
@@ -308,6 +308,7 @@ sub scroll
    my $partial = $self->{start_partial};
    my $scroll_amount = 0;
 
+REDO:
    if( $partial > 0 ) {
       $delta += $partial;
       $scroll_amount -= $partial;
@@ -342,28 +343,46 @@ sub scroll
       }
    }
 
-   if( $itemidx != $self->{start_item} or
-       $partial != $self->{start_partial} ) {
-      $self->{start_item}    = $itemidx;
-      $self->{start_partial} = $partial;
+   return if $itemidx == $self->{start_item} and
+             $partial == $self->{start_partial};
 
-      my $lines = $self->{window_lines};
+   my $lines = $self->{window_lines};
 
-      if( abs( $scroll_amount ) < $lines and 
-          $window->scroll( $scroll_amount, 0 ) ) {
+   if( $scroll_amount > 0 ) {
+      # We scrolled down. See if we've gone too far
+      my $line = -$partial;
+      my $idx = $itemidx;
 
-         if( $scroll_amount > 0 ) {
-            $self->render_lines( $lines - $scroll_amount, $lines );
-         }
-         else {
-            $self->render_lines( 0, -$scroll_amount );
-         }
+      while( $line < $lines && $idx < @$items ) {
+         $line += $self->_itemheight( $idx );
+         $idx++;
+      }
 
-         $self->window->restore;
+      if( $line < $lines ) {
+         my $spare = $lines - $line;
+
+         $delta = -$spare;
+         goto REDO;
+      }
+   }
+
+   $self->{start_item}    = $itemidx;
+   $self->{start_partial} = $partial;
+
+   if( abs( $scroll_amount ) < $lines and 
+      $window->scroll( $scroll_amount, 0 ) ) {
+
+      if( $scroll_amount > 0 ) {
+         $self->render_lines( $lines - $scroll_amount, $lines );
       }
       else {
-         $self->redraw;
+         $self->render_lines( 0, -$scroll_amount );
       }
+
+      $self->window->restore;
+   }
+   else {
+      $self->redraw;
    }
 }
 

@@ -9,6 +9,7 @@ my $build = Module::Build->new(
       'String::Tagged' => 0,
       'Tickit::Test' => '0.12',
       'Tickit::Widget' => '0.11',
+      'Tickit::Pen' => '0.19',
    },
    build_requires => {
       'Test::More' => 0,

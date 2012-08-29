@@ -2,7 +2,7 @@
 
 use strict;
 
-use Test::More tests => 30;
+use Test::More tests => 32;
 
 use Tickit::Test 0.12;
 
@@ -279,3 +279,30 @@ is_display( [ [TEXT("Item of text 4 ")],
               [TEXT("which is long")],
               [TEXT("Item of text 6 ")] ],
             'Display after scroll_to middle' );
+
+$scroller->scroll( +5 );
+flush_tickit;
+$term->methodlog;
+
+$scroller->scroll( +5 ); # over the end
+
+flush_tickit;
+
+is_termlog( [ SETBG(undef),
+              SCROLLRECT(0,0,5,15, +2,0),
+              GOTO(3,0),
+              SETPEN, 
+              PRINT("Item of text 9 "),
+              GOTO(4,0),
+              SETPEN,
+              PRINT("which is long"),
+              SETBG(undef),
+              ERASECH(2) ],
+            'Termlog down past the end' );
+
+is_display( [ [TEXT("which is long")],
+              [TEXT("Item of text 8 ")],
+              [TEXT("which is long")],
+              [TEXT("Item of text 9 ")],
+              [TEXT("which is long")] ],
+            'Display after scroll down past the end' );

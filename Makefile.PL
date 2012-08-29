@@ -7,6 +7,7 @@ WriteMakefile
   'PREREQ_PM' => {
                    'String::Tagged' => 0,
                    'Test::More' => 0,
+                   'Tickit::Pen' => '0.19',
                    'Tickit::Test' => '0.12',
                    'Tickit::Widget' => '0.11'
                  },

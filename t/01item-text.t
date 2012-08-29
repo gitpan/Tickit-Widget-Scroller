@@ -2,7 +2,7 @@
 
 use strict;
 
-use Test::More tests => 18;
+use Test::More tests => 22;
 
 use Tickit::Test 0.12;
 
@@ -146,4 +146,34 @@ is_display( [ [TEXT("My message")],
    is_display( [ [TEXT("Some more text")],
                  [TEXT("with linefeeds")] ],
                'Display for render with linefeeds' );
+}
+
+# Odd Unicode
+{
+   use utf8;
+
+   $win->clear;
+   $term->methodlog; # clear log
+
+   my $item = Tickit::Widget::Scroller::Item::Text->new( "(ノಠ益ಠ)ノ彡┻━┻" );
+
+   is_deeply( [ $item->chunks ],
+              [ [ "(ノಠ益ಠ)ノ彡┻━┻", 15 ] ],
+              '$item->chunks with Unicode' );
+
+   is( $item->height_for_width( 80 ), 1, 'height_for_width 2 with Unicode' );
+
+   $item->render( $win, top => 0, firstline => 0, lastline => 0, width => 80, height => 1 );
+
+   flush_tickit;
+
+   is_termlog( [ GOTO(0,0),
+                 SETPEN,
+                 PRINT("(ノಠ益ಠ)ノ彡┻━┻"),
+                 SETPEN,
+                 ERASECH(65) ],
+               'Termlog for render with Unicode' );
+
+   is_display( [ [TEXT("(ノಠ益ಠ)ノ彡┻━┻")] ],
+               'Display for render with Unicode' );
 }
