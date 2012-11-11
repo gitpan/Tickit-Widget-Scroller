@@ -8,7 +8,7 @@ use Tickit::Test 0.12;
 
 use Tickit::Widget::Scroller::Item::Text;
 
-my ( $term, $win ) = mk_term_and_window;
+my $win = mk_window;
 
 my $item = Tickit::Widget::Scroller::Item::Text->new( "My message here" );
 
@@ -35,62 +35,64 @@ is_display( [ [TEXT("My message here")] ],
             'Display for render fullwidth' );
 
 $win->clear;
-$term->methodlog; # clear log
+drain_termlog;
 
-my $subwin = $win->make_sub( 0, 0, 10, 12 );
+{
+   my $subwin = $win->make_sub( 0, 0, 10, 12 );
 
-is( $item->height_for_width( 12 ), 2, 'height_for_width 12' );
+   is( $item->height_for_width( 12 ), 2, 'height_for_width 12' );
 
-$item->render( $subwin, top => 0, firstline => 0, lastline => 1, width => 12, height => 10 );
+   $item->render( $subwin, top => 0, firstline => 0, lastline => 1, width => 12, height => 10 );
 
-flush_tickit;
+   flush_tickit;
 
-is_termlog( [ GOTO(0,0),
-              SETPEN,
-              PRINT("My message "),
-              SETBG(undef),
-              ERASECH(1),
-              GOTO(1,0),
-              SETPEN,
-              PRINT("here"),
-              SETBG(undef),
-              ERASECH(8) ],
-            'Termlog for render width 12' );
+   is_termlog( [ GOTO(0,0),
+                 SETPEN,
+                 PRINT("My message "),
+                 SETBG(undef),
+                 ERASECH(1),
+                 GOTO(1,0),
+                 SETPEN,
+                 PRINT("here"),
+                 SETBG(undef),
+                 ERASECH(8) ],
+               'Termlog for render width 12' );
 
-is_display( [ [TEXT("My message")],
-              [TEXT("here")] ],
-            'Display for render width 12' );
+   is_display( [ [TEXT("My message")],
+                 [TEXT("here")] ],
+               'Display for render width 12' );
 
-my $indenteditem = Tickit::Widget::Scroller::Item::Text->new( "My message here", indent => 4 );
+   my $indenteditem = Tickit::Widget::Scroller::Item::Text->new( "My message here", indent => 4 );
 
-is( $indenteditem->height_for_width( 12 ), 2, 'height_for_width 12 with indent' );
+   is( $indenteditem->height_for_width( 12 ), 2, 'height_for_width 12 with indent' );
 
-$indenteditem->render( $subwin, top => 0, firstline => 0, lastline => 1, width => 12, height => 10 );
+   $indenteditem->render( $subwin, top => 0, firstline => 0, lastline => 1, width => 12, height => 10 );
 
-flush_tickit;
+   flush_tickit;
 
-is_termlog( [ GOTO(0,0),
-              SETPEN,
-              PRINT("My message "),
-              SETBG(undef),
-              ERASECH(1),
-              GOTO(1,0),
-              SETBG(undef),
-              ERASECH(4,1),
-              SETPEN,
-              PRINT("here"),
-              SETBG(undef),
-              ERASECH(4) ],
-            'Termlog for render width 12 with indent' );
+   is_termlog( [ GOTO(0,0),
+                 SETPEN,
+                 PRINT("My message "),
+                 SETBG(undef),
+                 ERASECH(1),
+                 GOTO(1,0),
+                 SETBG(undef),
+                 ERASECH(4,1),
+                 SETPEN,
+                 PRINT("here"),
+                 SETBG(undef),
+                 ERASECH(4) ],
+               'Termlog for render width 12 with indent' );
 
-is_display( [ [TEXT("My message")],
-              [TEXT("    here")] ],
-            'Display for render width 12 with indent' );
+   is_display( [ [TEXT("My message")],
+                 [TEXT("    here")] ],
+               'Display for render width 12 with indent' );
+}
 
 # Boundary condition in whitespace splitting
 {
    $win->clear;
-   $term->methodlog; # clear log
+   drain_termlog;
 
    my $item = Tickit::Widget::Scroller::Item::Text->new( "AAAA BBBB CCCC DDDD" );
 
@@ -116,7 +118,7 @@ is_display( [ [TEXT("My message")],
 # Linefeeds
 {
    $win->clear;
-   $term->methodlog; # clear log
+   drain_termlog;
 
    my $item = Tickit::Widget::Scroller::Item::Text->new( "Some more text\nwith linefeeds" );
 
@@ -153,7 +155,7 @@ is_display( [ [TEXT("My message")],
    use utf8;
 
    $win->clear;
-   $term->methodlog; # clear log
+   drain_termlog;
 
    my $item = Tickit::Widget::Scroller::Item::Text->new( "(ノಠ益ಠ)ノ彡┻━┻" );
 

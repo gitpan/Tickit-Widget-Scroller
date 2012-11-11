@@ -9,6 +9,7 @@ use Tickit::Test 0.12;
 use Tickit::Widget::Scroller;
 use Tickit::Widget::Scroller::Item::Text;
 
+# TODO: mk_window once Tickit::Test can take a size there too
 my ( $term, $rootwin ) = mk_term_and_window cols => 20, lines => 8;
 my $win = $rootwin->make_sub( 0, 0, 6, 20 );
 
@@ -104,7 +105,7 @@ is_cursorpos( 7, 0, 'Cursor position after shift 3' );
 
 $scroller->scroll_to_bottom;
 flush_tickit;
-$term->methodlog; # ignore the method log
+drain_termlog;
 
 is_display( [ [TEXT("Existing line 15")],
               [TEXT("Existing line 16")],
@@ -131,7 +132,7 @@ is_display( [ [TEXT("Existing line 15")],
 
 $scroller->scroll_to_top;
 flush_tickit;
-$term->methodlog; # ignore the method log
+drain_termlog;
 
 is_display( [ [TEXT("Existing line 6")],
               [TEXT("Existing line 7")],

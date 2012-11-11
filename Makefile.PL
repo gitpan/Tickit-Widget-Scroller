@@ -9,7 +9,8 @@ WriteMakefile
                    'Test::More' => 0,
                    'Tickit::Pen' => '0.19',
                    'Tickit::Test' => '0.12',
-                   'Tickit::Widget' => '0.11'
+                   'Tickit::Widget' => '0.11',
+                   'Tickit::Window' => '0.22'
                  },
   'INSTALLDIRS' => 'site',
   'EXE_FILES' => [],

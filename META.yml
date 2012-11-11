@@ -14,18 +14,19 @@ name: Tickit-Widget-Scroller
 provides:
   Tickit::Widget::Scroller:
     file: lib/Tickit/Widget/Scroller.pm
-    version: 0.07
+    version: 0.08
   Tickit::Widget::Scroller::Item::RichText:
     file: lib/Tickit/Widget/Scroller/Item/RichText.pm
-    version: 0.07
+    version: 0.08
   Tickit::Widget::Scroller::Item::Text:
     file: lib/Tickit/Widget/Scroller/Item/Text.pm
-    version: 0.07
+    version: 0.08
 requires:
   String::Tagged: 0
   Tickit::Pen: 0.19
   Tickit::Test: 0.12
   Tickit::Widget: 0.11
+  Tickit::Window: 0.22
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.07
+version: 0.08

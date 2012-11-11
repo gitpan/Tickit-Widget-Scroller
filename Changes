@@ -1,5 +1,13 @@
 Revision history for Tickit-Widget-Scroller
 
+0.08    CHANGES:
+         * Try to linewrap on word boundaries if possible, even during pen
+           changes
+         * Enable new expose_after_scroll behaviour
+         * Disable deprecated CLEAR_BEFORE_RENDER behaviour
+         * Fix unit tests to work correctly with new experimental
+           FLOAT_ALL_THE_WINDOWS behaviour
+
 0.07    CHANGES:
          * Don't allow overscroll past the end of the content
          * More unit testing of full Unicode text

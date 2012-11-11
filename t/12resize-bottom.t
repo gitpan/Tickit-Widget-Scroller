@@ -9,7 +9,7 @@ use Tickit::Test;
 use Tickit::Widget::Scroller;
 use Tickit::Widget::Scroller::Item::Text;
 
-my ( $term, $rootwin ) = mk_term_and_window;
+my $rootwin = mk_window;
 my $win = $rootwin->make_sub( 0, 0, 5, 40 );
 
 my $scroller = Tickit::Widget::Scroller->new(

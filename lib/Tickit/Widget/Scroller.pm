@@ -9,11 +9,11 @@ use strict;
 use warnings;
 use base qw( Tickit::Widget );
 Tickit::Widget->VERSION( '0.06' );
+Tickit::Window->VERSION( '0.22' );
 
 use Tickit::Window;
-use constant HAVE_HIDDEN_WINDOWS => $Tickit::Window::VERSION >= 0.17;
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 use Carp;
 
@@ -138,6 +138,8 @@ sub new
 sub cols  { 1 }
 sub lines { 1 }
 
+sub CLEAR_BEFORE_RENDER { 0 }
+
 sub _item
 {
    my $self = shift;
@@ -187,6 +189,8 @@ sub window_gained
 {
    my $self = shift;
    my ( $win ) = @_;
+
+   $win->set_expose_after_scroll( 1 );
 
    $self->{window_lines} = $win->lines;
 
@@ -369,17 +373,8 @@ REDO:
    $self->{start_item}    = $itemidx;
    $self->{start_partial} = $partial;
 
-   if( abs( $scroll_amount ) < $lines and 
-      $window->scroll( $scroll_amount, 0 ) ) {
-
-      if( $scroll_amount > 0 ) {
-         $self->render_lines( $lines - $scroll_amount, $lines );
-      }
-      else {
-         $self->render_lines( 0, -$scroll_amount );
-      }
-
-      $self->window->restore;
+   if( abs( $scroll_amount ) < $lines ) {
+      $window->scroll( $scroll_amount, 0 );
    }
    else {
       $self->redraw;
@@ -625,7 +620,7 @@ sub render
    my $rect = $args{rect};
 
    my $win = $self->window or return;
-   $win->is_visible or return if HAVE_HIDDEN_WINDOWS;
+   $win->is_visible or return;
 
    $self->render_lines( $rect->top, $rect->bottom );
 }

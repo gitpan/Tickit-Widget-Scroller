@@ -2,14 +2,14 @@
 
 use strict;
 
-use Test::More tests => 6;
+use Test::More tests => 9;
 
 use Tickit::Test;
 
 use String::Tagged;
 use Tickit::Widget::Scroller::Item::RichText;
 
-my ( $term, $win ) = mk_term_and_window;
+my $win = mk_window;
 
 my $str = String::Tagged->new( "My message here" );
 $str->apply_tag(  3, 7, b => 1 );
@@ -51,7 +51,7 @@ is_display( [ [TEXT("My "), TEXT("message",b=>1), BLANK(1), TEXT("here",u=>1)] ]
 # Linefeeds
 {
    $win->clear;
-   $term->methodlog; # clear log
+   drain_termlog;
 
    my $str = String::Tagged->new( "Another message\nwith linefeeds" );
    $str->apply_tag( 8, 12, b => 1 );
@@ -64,4 +64,52 @@ is_display( [ [TEXT("My "), TEXT("message",b=>1), BLANK(1), TEXT("here",u=>1)] ]
                 [ "with",        4, pen => Tickit::Pen->new( b => 1 ) ], 
                 [ " linefeeds", 10, pen => Tickit::Pen->new() ] ],
               '$item->chunks with linefeeds' );
+}
+
+# Word wrapping on pen changes
+{
+   $win->clear;
+   drain_termlog;
+
+   my $str = String::Tagged->new;
+   foreach my $colour (qw( red blue green yellow )) {
+      $str->append_tagged( $colour, fg => $colour );
+      $str->append( " " );
+   }
+
+   my $item = Tickit::Widget::Scroller::Item::RichText->new( $str );
+
+   is( $item->height_for_width( 18 ), 2, 'height_for_width 18 for wrapping pen change' );
+
+   $item->render( $win, top => 0, firstline => 0, lastline => 1, width => 18, height => 2 );
+
+   flush_tickit;
+
+   is_termlog( [ GOTO(0,0),
+                 SETPEN(fg=>1),
+                 PRINT("red"),
+                 SETPEN,
+                 PRINT(" "),
+                 SETPEN(fg=>4),
+                 PRINT("blue"),
+                 SETPEN,
+                 PRINT(" "),
+                 SETPEN(fg=>2),
+                 PRINT("green"),
+                 SETPEN,
+                 PRINT(" "),
+                 SETPEN,
+                 ERASECH(3),
+                 GOTO(1,0),
+                 SETPEN(fg=>3),
+                 PRINT("yellow"),
+                 SETPEN,
+                 PRINT(" "),
+                 SETPEN,
+                 ERASECH(11) ],
+               'Termlog for render wrapping pen change' );
+
+   is_display( [ [TEXT("red",fg=>1), BLANK(1), TEXT("blue",fg=>4), BLANK(1), TEXT("green",fg=>2)],
+                 [TEXT("yellow",fg=>3)] ],
+               'Display for render wrapping pen change' );
 }

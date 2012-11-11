@@ -8,7 +8,7 @@ package Tickit::Widget::Scroller::Item::Text;
 use strict;
 use warnings;
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 use Tickit::Utils qw( textwidth cols2chars );
 
@@ -146,7 +146,10 @@ sub height_for_width
 
          if( $eol_ch < length $text && substr( $text, $eol_ch, 1 ) =~ m/\S/ ) {
             # TODO: This surely must be possible without substr()ing a temporary
-            substr( $text, 0, $eol_ch ) =~ m/\S+$/ and $-[0] > 0 and $eol_ch = $-[0];
+            if( substr( $text, 0, $eol_ch ) =~ m/\S+$/ and
+                ( $-[0] > 0 or @$thisline ) ) {
+               $eol_ch = $-[0];
+            }
          }
 
          my $partial_text = substr( $text, 0, $eol_ch );

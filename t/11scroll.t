@@ -10,6 +10,7 @@ use Tickit::Widget::Scroller;
 use Tickit::Widget::Scroller::Item::Text;
 
 # Tests are simpler if the terminal is much smaller
+# TODO: mk_window once Tickit::Test can take a size there too
 my ( $term, $win ) = mk_term_and_window lines => 5, cols => 15;
 
 my $scroller = Tickit::Widget::Scroller->new;
@@ -22,9 +23,7 @@ $scroller->set_window( $win );
 
 flush_tickit;
 
-is_termlog( [ SETPEN,
-              CLEAR,
-              GOTO(0,0),
+is_termlog( [ GOTO(0,0),
               SETPEN, 
               PRINT("Item of text 1 "),
               GOTO(1,0),
@@ -65,9 +64,7 @@ $scroller->scroll( +10 );
 
 flush_tickit;
 
-is_termlog( [ SETPEN,
-              CLEAR,
-              GOTO(0,0),
+is_termlog( [ GOTO(0,0),
               SETPEN, 
               PRINT("Item of text 6 "),
               GOTO(1,0),
@@ -146,9 +143,7 @@ $scroller->scroll( -10 );
 
 flush_tickit;
 
-is_termlog( [ SETPEN,
-              CLEAR,
-              GOTO(0,0),
+is_termlog( [ GOTO(0,0),
               SETPEN, 
               PRINT("Item of text 1 "),
               GOTO(1,0),
@@ -180,9 +175,7 @@ $scroller->scroll_to_bottom;
 
 flush_tickit;
 
-is_termlog( [ SETPEN,
-              CLEAR,
-              GOTO(0,0),
+is_termlog( [ GOTO(0,0),
               SETPEN, 
               PRINT("which is long"),
               SETBG(undef),
@@ -216,9 +209,7 @@ $scroller->scroll_to_top;
 
 flush_tickit;
 
-is_termlog( [ SETPEN,
-              CLEAR,
-              GOTO(0,0),
+is_termlog( [ GOTO(0,0),
               SETPEN, 
               PRINT("Item of text 1 "),
               GOTO(1,0),
@@ -250,9 +241,7 @@ $scroller->scroll_to( 2, 4, 0 ); # About halfway
 
 flush_tickit;
 
-is_termlog( [ SETPEN,
-              CLEAR,
-              GOTO(0,0),
+is_termlog( [ GOTO(0,0),
               SETPEN, 
               PRINT("Item of text 4 "),
               GOTO(1,0),
@@ -282,7 +271,7 @@ is_display( [ [TEXT("Item of text 4 ")],
 
 $scroller->scroll( +5 );
 flush_tickit;
-$term->methodlog;
+drain_termlog;
 
 $scroller->scroll( +5 ); # over the end
 

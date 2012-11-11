@@ -9,7 +9,7 @@ use Tickit::Test;
 use Tickit::Widget::Scroller;
 use Tickit::Widget::Scroller::Item::Text;
 
-my ( $term, $win ) = mk_term_and_window;
+my $win = mk_window;
 
 my $scroller = Tickit::Widget::Scroller->new;
 
@@ -26,9 +26,7 @@ $scroller->set_window( $win );
 
 flush_tickit;
 
-is_termlog( [ SETPEN,
-              CLEAR,
-              GOTO(0,0),
+is_termlog( [ GOTO(0,0),
               SETPEN,
               PRINT("The first line"),
               SETBG(undef),
@@ -71,9 +69,7 @@ resize_term( 25, 20 );
 
 flush_tickit;
 
-is_termlog( [ SETPEN,
-              CLEAR,
-              GOTO(0,0),
+is_termlog( [ GOTO(0,0),
               SETPEN,
               PRINT("The first line"),
               SETBG(undef),

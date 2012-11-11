@@ -9,6 +9,7 @@ use Tickit::Test 0.12;
 use Tickit::Widget::Scroller;
 use Tickit::Widget::Scroller::Item::Text;
 
+# TODO: mk_window once Tickit::Test can take a size there too
 my ( $term, $rootwin ) = mk_term_and_window cols => 20, lines => 8;
 my $win = $rootwin->make_sub( 0, 0, 6, 20 );
 
@@ -171,7 +172,7 @@ $scroller->push( Tickit::Widget::Scroller::Item::Text->new( "A line while offscr
 $scroller->set_window( $win );
 
 flush_tickit;
-$term->methodlog; # flush it
+drain_termlog;
 
 is_display( [ [TEXT("Another line 7")],
               [TEXT("Another line 8")],
@@ -184,7 +185,7 @@ is_display( [ [TEXT("Another line 7")],
 $scroller->scroll_to_top;
 
 flush_tickit;
-$term->methodlog; # flush it
+drain_termlog;
 
 is_display( [ [TEXT("A line of text")],
               [TEXT("Another line 1")],
