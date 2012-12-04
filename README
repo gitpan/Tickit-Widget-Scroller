@@ -62,6 +62,11 @@ CONSTRUCTOR
             attempt to preserve the item at the bottom of the screen.
             Otherwise, will preserve the top.
 
+    gen_top_indicator => CODE
+    gen_bottom_indicator => CODE
+            Optional. Generator functions for the top and bottom indicators.
+            See also `set_gen_top_indicator' and `set_gen_bottom_indicator'.
+
 METHODS
   $scroller->push( @items )
     Append the given items to the end of the list.
@@ -112,7 +117,7 @@ METHODS
     backward from the last line on display; the last line taking `-1'.
 
   $line = $scroller->item2line( $itemidx, $itemline )
-  ( $line, $offscreen ) = $scroller->item2line( $itemidx, $itemline )
+  ( $line, $offscreen ) = $scroller->item2line( $itemidx, $itemline, $count_offscreen )
     Returns the display line in the window of the given line of the item at
     the given index. `$itemidx' may be given negative, to count backwards
     from the last item. `$itemline' may be negative to count backward from
@@ -122,7 +127,41 @@ METHODS
     the item. For items fully on display, this value is `undef'. If the
     given line of the given item is not on display because it is scrolled
     off either the top or bottom of the window, this value will be either
-    `"above"' or `"below"' respectively.
+    `"above"' or `"below"' respectively. If `$count_offscreen' is true, then
+    the returned `$line' value will always be defined, even if the item line
+    is offscreen. This will be negative for items `"above"', and a value
+    equal or greater than the number of lines in the scroller's window for
+    items `"below"'.
+
+  $count = $scroller->lines_above
+    Returns the number of lines of content above the scrolled display.
+
+  $count = $scroller->lines_below
+    Returns the number of lines of content below the scrolled display.
+
+  $scroller->set_gen_top_indicator( $method )
+  $scroller->set_gen_bottom_indicator( $method )
+    Accessors for the generators for the top and bottom indicator text. If
+    set, each should be a CODE reference or method name on the scroller
+    which will be invoked after any operation that changes the contents of
+    the window, such as scrolling or adding or removing items. It should
+    return a text string which, if defined and non-empty, will be displayed
+    in an indicator window. This will be a small one-line window displayed
+    at the top right or bottom right corner of the Scroller's window.
+
+     $text = $scroller->$method()
+
+    The ability to pass method names allows subclasses to easily implement
+    custom logic as methods without having to capture a closure.
+
+  $pen = $scroller->indicator_pen
+  $scroller->set_indicator_pen( $pen )
+    Accessors for the pen used to draw the indicator windows.
+
+  $scroller->update_indicators
+    Calls any defined generators for indicator text, and updates the
+    indicator windows with the returned text. This may be useful if the
+    functions would return different text now.
 
 TODO
     *   Abstract away the "item storage model" out of the actual widget.

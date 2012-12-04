@@ -23,4 +23,5 @@ t/20push-bottom.t
 t/20push-top.t
 t/21shift-bottom.t
 t/21shift-top.t
+t/30indicator.t
 t/99pod.t

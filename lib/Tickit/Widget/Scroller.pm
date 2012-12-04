@@ -12,8 +12,9 @@ Tickit::Widget->VERSION( '0.06' );
 Tickit::Window->VERSION( '0.22' );
 
 use Tickit::Window;
+use Tickit::Utils qw( textwidth );
 
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 use Carp;
 
@@ -104,6 +105,13 @@ Takes the following named arguments:
 Optional. If given the value C<bottom>, resize events will attempt to preserve
 the item at the bottom of the screen. Otherwise, will preserve the top.
 
+=item gen_top_indicator => CODE
+
+=item gen_bottom_indicator => CODE
+
+Optional. Generator functions for the top and bottom indicators. See also
+C<set_gen_top_indicator> and C<set_gen_bottom_indicator>.
+
 =back
 
 =cut
@@ -117,6 +125,8 @@ sub new
 
    my $self = $class->SUPER::new( %args );
 
+   $self->_init_indicator_pen;
+
    # We're going to cache window height because we need pre-resize height
    # during resize event
    $self->{window_lines} = undef;
@@ -127,6 +137,9 @@ sub new
    $self->{start_partial} = 0;
 
    $self->{gravity_bottom} = $gravity eq "bottom";
+
+   $self->set_gen_top_indicator( $args{gen_top_indicator} );
+   $self->set_gen_bottom_indicator( $args{gen_bottom_indicator} );
 
    return $self;
 }
@@ -248,6 +261,8 @@ sub push
          $win->restore;
       }
    }
+
+   $self->update_indicators;
 }
 
 =head2 $scroller->shift( $count )
@@ -287,6 +302,8 @@ sub shift :method
       $self->scroll_to_top;
       # ->scroll implies $win->restore
    }
+
+   $self->update_indicators;
 }
 
 =head2 $scroller->scroll( $delta )
@@ -379,6 +396,8 @@ REDO:
    else {
       $self->redraw;
    }
+
+   $self->update_indicators;
 }
 
 =head2 $scroller->scroll_to( $line, $itemidx, $itemline )
@@ -447,6 +466,8 @@ sub scroll_to
 
    # TODO: Work out if this is doable by delta scrolling
    $self->redraw;
+
+   $self->update_indicators;
 }
 
 =head2 $scroller->scroll_to_top( $itemidx, $itemline )
@@ -539,7 +560,7 @@ sub line2item
 
 =head2 $line = $scroller->item2line( $itemidx, $itemline )
 
-=head2 ( $line, $offscreen ) = $scroller->item2line( $itemidx, $itemline )
+=head2 ( $line, $offscreen ) = $scroller->item2line( $itemidx, $itemline, $count_offscreen )
 
 Returns the display line in the window of the given line of the item at the
 given index. C<$itemidx> may be given negative, to count backwards from the
@@ -550,14 +571,17 @@ In list context, also returns a value describing the offscreen nature of the
 item. For items fully on display, this value is C<undef>. If the given line of
 the given item is not on display because it is scrolled off either the top or
 bottom of the window, this value will be either C<"above"> or C<"below">
-respectively.
+respectively. If C<$count_offscreen> is true, then the returned C<$line> value
+will always be defined, even if the item line is offscreen. This will be
+negative for items C<"above">, and a value equal or greater than the number of
+lines in the scroller's window for items C<"below">.
 
 =cut
 
 sub item2line
 {
    my $self = shift;
-   my ( $want_itemidx, $want_itemline ) = @_;
+   my ( $want_itemidx, $want_itemline, $count_offscreen ) = @_;
 
    my $window = $self->window or return;
    my $lines = $self->{window_lines};
@@ -586,17 +610,29 @@ sub item2line
       croak '$itemline out of bounds' if $want_itemline >= $itemheight;
    }
 
-   if( $want_itemidx < $self->{start_item} ) {
-      return ( undef, "above" ) if wantarray;
-      return;
-   }
-
    my $itemidx = $self->{start_item};
 
    my $line = -$self->{start_partial};
 
-   while( $itemidx < @$items and $line < $lines ) {
-      my $itemheight = $self->_itemheight( $itemidx );
+   if( $want_itemidx < $itemidx or
+       $want_itemidx == $itemidx and $want_itemline < $self->{start_partial} ) {
+      if( wantarray and $count_offscreen ) {
+         while( $itemidx >= 0 ) {
+            if( $want_itemidx == $itemidx ) {
+               $line += $want_itemline;
+               last;
+            }
+
+            $itemidx--;
+            $line -= $self->_itemheight( $itemidx );
+         }
+         return ( $line, "above" );
+      }
+      return ( undef, "above" ) if wantarray;
+      return;
+   }
+
+   while( $itemidx < @$items and ( $line < $lines or $count_offscreen ) ) {
       if( $want_itemidx == $itemidx ) {
          $line += $want_itemline;
 
@@ -604,12 +640,41 @@ sub item2line
          return $line;
       }
 
-      $line += $itemheight;
+      $line += $self->_itemheight( $itemidx );
       $itemidx++;
    }
 
-   return ( undef, "below" ) if wantarray;
+   return ( undef, "below" ) if wantarray and !$count_offscreen;
+   return ( $line, "below" ) if wantarray and $count_offscreen;
    return;
+}
+
+=head2 $count = $scroller->lines_above
+
+Returns the number of lines of content above the scrolled display.
+
+=cut
+
+sub lines_above
+{
+   my $self = shift;
+   my ( $line, $offscreen ) = $self->item2line( 0, 0, 1 );
+   return 0 unless $offscreen;
+   return -$line;
+}
+
+=head2 $count = $scroller->lines_below
+
+Returns the number of lines of content below the scrolled display.
+
+=cut
+
+sub lines_below
+{
+   my $self = shift;
+   my ( $line, $offscreen ) = $self->item2line( -1, -1, 1 );
+   return 0 unless $offscreen;
+   return $line - $self->window->lines + 1;
 }
 
 sub render
@@ -704,6 +769,103 @@ sub on_mouse
    return unless $ev eq "wheel";
 
    $self->scroll( $button_dir eq "down" ? 5 : -5 );
+}
+
+=head2 $scroller->set_gen_top_indicator( $method )
+
+=head2 $scroller->set_gen_bottom_indicator( $method )
+
+Accessors for the generators for the top and bottom indicator text. If set,
+each should be a CODE reference or method name on the scroller which will be
+invoked after any operation that changes the contents of the window, such as
+scrolling or adding or removing items. It should return a text string which,
+if defined and non-empty, will be displayed in an indicator window. This will
+be a small one-line window displayed at the top right or bottom right corner
+of the Scroller's window.
+
+ $text = $scroller->$method()
+
+The ability to pass method names allows subclasses to easily implement custom
+logic as methods without having to capture a closure.
+
+=cut
+
+sub set_gen_top_indicator
+{
+   my $self = shift;
+   ( $self->{gen_top_indicator} ) = @_;
+
+   $self->update_indicators;
+}
+
+sub set_gen_bottom_indicator
+{
+   my $self = shift;
+   ( $self->{gen_bottom_indicator} ) = @_;
+
+   $self->update_indicators;
+}
+
+=head2 $pen = $scroller->indicator_pen
+
+=head2 $scroller->set_indicator_pen( $pen )
+
+Accessors for the pen used to draw the indicator windows.
+
+=cut
+
+use Tickit::WidgetRole::Penable name => "indicator", default => { rv => 1 };
+
+=head2 $scroller->update_indicators
+
+Calls any defined generators for indicator text, and updates the indicator
+windows with the returned text. This may be useful if the functions would
+return different text now.
+
+=cut
+
+sub update_indicators
+{
+   my $self = shift;
+
+   my $win = $self->window or return;
+
+   for my $edge (qw( top bottom )) {
+      my $text_field = "${edge}_indicator_text";
+
+      my $text = $self->{"gen_${edge}_indicator"} ? $self->${ \$self->{"gen_${edge}_indicator"} }
+                                                  : undef;
+      $text //= "";
+      next if $text eq ( $self->{$text_field} // "" );
+
+      $self->{$text_field} = $text;
+
+      if( !length $text ) {
+         $self->{"${edge}_indicator_win"}->hide if $self->{"${edge}_indicator_win"};
+         undef $self->{"${edge}_indicator_win"};
+         next;
+      }
+
+      my $textwidth = textwidth $text;
+      my $line = $edge eq "top" ? 0
+                                : $win->lines - 1;
+
+      my $floatwin;
+      if( $floatwin = $self->{"${edge}_indicator_win"} ) {
+         $floatwin->change_geometry( $line, $win->cols - $textwidth, 1, $textwidth );
+      }
+      elsif( $self->window ) {
+         $floatwin = $win->make_float( $line, $win->cols - $textwidth, 1, $textwidth );
+         $floatwin->set_on_expose( sub {
+            my $win = shift;
+            $win->goto( 0, 0 );
+            $win->print( $self->{$text_field}, $self->indicator_pen );
+         } );
+         $self->{"${edge}_indicator_win"} = $floatwin;
+      }
+
+      $floatwin->expose;
+   }
 }
 
 =head1 TODO

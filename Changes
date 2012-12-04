@@ -1,5 +1,10 @@
 Revision history for Tickit-Widget-Scroller
 
+0.09    CHANGES:
+         * Added indicators (may require Tickit 0.24 to scroll efficiently)
+         * Added ->lines_above, ->lines_below
+         * Added count_offscreen behaviour to item2line
+
 0.08    CHANGES:
          * Try to linewrap on word boundaries if possible, even during pen
            changes

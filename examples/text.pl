@@ -9,7 +9,19 @@ use Tickit::Widget::Entry;
 use Tickit::Widget::Scroller;
 use Tickit::Widget::Scroller::Item::Text;
 
-my $scroller = Tickit::Widget::Scroller->new( gravity => "bottom" );
+my $scroller = Tickit::Widget::Scroller->new(
+   gravity => "bottom",
+   gen_top_indicator => sub {
+      my $self = shift;
+      my $lines = $self->lines_above or return;
+      return sprintf "+ %d more", $lines;
+   },
+   gen_bottom_indicator => sub {
+      my $self = shift;
+      my $lines = $self->lines_below or return;
+      return sprintf "+ %d more", $lines;
+   },
+);
 
 for my $i ( 0 .. 100 ) {
    my $text = "<Rand $i>: ";
