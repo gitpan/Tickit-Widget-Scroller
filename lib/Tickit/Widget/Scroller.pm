@@ -1,7 +1,7 @@
 #  You may distribute under the terms of either the GNU General Public License
 #  or the Artistic License (the same terms as Perl itself)
 #
-#  (C) Paul Evans, 2011-2012 -- leonerd@leonerd.org.uk
+#  (C) Paul Evans, 2011-2013 -- leonerd@leonerd.org.uk
 
 package Tickit::Widget::Scroller;
 
@@ -14,7 +14,7 @@ Tickit::Window->VERSION( '0.22' );
 use Tickit::Window;
 use Tickit::Utils qw( textwidth );
 
-our $VERSION = '0.09';
+our $VERSION = '0.10';
 
 use Carp;
 
@@ -102,8 +102,9 @@ Takes the following named arguments:
 
 =item gravity => STRING
 
-Optional. If given the value C<bottom>, resize events will attempt to preserve
-the item at the bottom of the screen. Otherwise, will preserve the top.
+Optional. If given the value C<bottom>, resize events and the C<push> method
+will attempt to preserve the item at the bottom of the screen. Otherwise, will
+preserve the top.
 
 =item gen_top_indicator => CODE
 
@@ -219,10 +220,10 @@ sub window_gained
 Append the given items to the end of the list.
 
 If the Scroller is already at the tail (that is, the last line of the last
-item is on display), the newly added items will be displayed, possibly by
-scrolling downward if required. While the scroller isn't adjusted, by using
-any of the C<scroll> methods, it will remain following the tail of the items,
-scrolling itself upwards as more are added.
+item is on display) and the gravity mode is C<bottom>, the newly added items
+will be displayed, possibly by scrolling downward if required. While the
+scroller isn't adjusted by using any of the C<scroll> methods, it will remain
+following the tail of the items, scrolling itself downwards as more are added.
 
 =cut
 
@@ -237,6 +238,9 @@ sub push
    push @$items, @_;
 
    if( my $win = $self->window ) {
+      my $added = 0;
+      $added += $self->_itemheight( $_ ) for $oldsize .. $#$items;
+
       my $lines = $self->{window_lines};
 
       my $oldlast = $oldsize ? $self->item2line( $oldsize-1, -1 ) : -1;
@@ -245,20 +249,98 @@ sub push
       # If not, don't bother drawing or scrolling
       return unless defined $oldlast and $oldlast < $lines;
 
-      my $firstblank = $oldlast + 1;
-      my $spare = $lines - $firstblank;
+      my $new_start = $oldlast + 1;
+      my $new_stop  = $new_start + $added;
 
-      my $added = 0;
-      $added += $self->_itemheight( $_ ) for $oldsize .. $#$items;
-
-      if( $added > $spare ) {
-         $self->render_lines( $lines - $spare, $lines ) if $added < $lines;
-         $self->scroll( $added - $spare );
-         # ->scroll already did $win->restore
+      if( $self->{gravity_bottom} ) {
+         # If there were enough spare lines, render them, otherwise scroll
+         if( $new_stop <= $lines ) {
+            $self->render_lines( $new_start, $new_stop );
+            $win->restore;
+         }
+         else {
+            $self->render_lines( $new_start, $lines ) if $new_start < $lines;
+            $self->scroll( $new_stop - $lines );
+         }
       }
       else {
-         $self->render_lines( $firstblank, $firstblank + $added );
-         $win->restore;
+         # If any new lines of content are now on display, render them
+         $new_stop = $lines if $new_stop > $lines;
+         if( $new_stop > $new_start ) {
+            $self->render_lines( $new_start, $new_stop );
+            $win->restore;
+         }
+      }
+   }
+
+   $self->update_indicators;
+}
+
+=head2 $scroller->unshift( @items )
+
+Prepend the given items to the beginning of the list.
+
+If the Scroller is already at the head (that is, the first line of the first
+item is on display) and the gravity mode is C<top>, the newly added items will
+be displayed, possibly by scrolling upward if required. While the scroller
+isn't adjusted by using any of the C<scroll> methods, it will remain following
+the head of the items, scrolling itself upwards as more are added.
+
+=cut
+
+sub unshift :method
+{
+   my $self = shift;
+
+   my $items = $self->{items};
+
+   my $oldsize = @$items;
+
+   my $oldfirst = $oldsize ? $self->item2line( 0, 0 ) : 0;
+   my $oldlast  = $oldsize ? $self->item2line( -1, -1 ) : -1;
+
+   unshift @$items, @_;
+   unshift @{ $self->{itemheights} }, ( undef ) x @_;
+   $self->{start_item} += @_;
+
+   if( my $win = $self->window ) {
+      my $added = 0;
+      $added += $self->_itemheight( $_ ) for 0 .. $#_;
+
+      # Previous head is on screen if $oldfirst is defined and non-negative
+      # If not, don't bother drawing or scrolling
+      return unless defined $oldfirst and $oldfirst >= 0;
+
+      my $lines = $self->{window_lines};
+
+      if( $self->{gravity_bottom} ) {
+         # If the display wasn't yet full, scroll it down to display any new
+         # lines that are visible
+         my $first_blank = $oldlast + 1;
+         my $scroll_delta = $lines - $first_blank;
+         $scroll_delta = $added if $scroll_delta > $added;
+         if( $oldsize ) {
+            $self->scroll( -$scroll_delta );
+         }
+         else {
+            $self->{start_item} = 0;
+            # TODO: if $added > $lines, need special handling
+            $self->render_lines( 0, $added );
+            $win->restore;
+         }
+      }
+      else {
+         # Scroll down by the amount added
+         if( $oldsize ) {
+            $self->scroll( -$added );
+         }
+         else {
+            my $new_stop = $added;
+            $new_stop = $lines if $new_stop > $lines;
+            $self->{start_item} = 0;
+            $self->render_lines( 0, $new_stop );
+            $win->restore;
+         }
       }
    }
 
@@ -768,7 +850,8 @@ sub on_mouse
 
    return unless $ev eq "wheel";
 
-   $self->scroll( $button_dir eq "down" ? 5 : -5 );
+   $self->scroll(  5 ) if $button_dir eq "down";
+   $self->scroll( -5 ) if $button_dir eq "up";
 }
 
 =head2 $scroller->set_gen_top_indicator( $method )

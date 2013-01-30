@@ -104,7 +104,7 @@ is_termlog( [ GOTO(5,0),
               SETBG(undef),
               ERASECH(15),
               GOTO(7,0) ],
-            'Termlog after push scroll' );
+            'Termlog after push wrapping' );
 
 is_display( [ [TEXT("Another line 1")],
               [TEXT("Another line 2")],
@@ -112,48 +112,16 @@ is_display( [ [TEXT("Another line 1")],
               [TEXT("Another line 4")],
               [TEXT("An item of text that")],
               [TEXT("wraps")] ],
-            'Display after push scroll' );
+            'Display after push wrapping' );
 
-is_cursorpos( 7, 0, 'Cursor position after push scroll' );
+is_cursorpos( 7, 0, 'Cursor position after push wrapping' );
 
 $scroller->push(
    map { Tickit::Widget::Scroller::Item::Text->new( "Another line $_" ) } 5 .. 10,
 );
 
 flush_tickit;
-
-is_termlog( [ GOTO(0,0),
-              SETPEN,
-              PRINT("Another line 5"),
-              SETBG(undef),
-              ERASECH(6),
-              GOTO(1,0),
-              SETPEN,
-              PRINT("Another line 6"),
-              SETBG(undef),
-              ERASECH(6),
-              GOTO(2,0),
-              SETPEN,
-              PRINT("Another line 7"),
-              SETBG(undef),
-              ERASECH(6),
-              GOTO(3,0),
-              SETPEN,
-              PRINT("Another line 8"),
-              SETBG(undef),
-              ERASECH(6),
-              GOTO(4,0),
-              SETPEN,
-              PRINT("Another line 9"),
-              SETBG(undef),
-              ERASECH(6),
-              GOTO(5,0),
-              SETPEN,
-              PRINT("Another line 10"),
-              SETBG(undef),
-              ERASECH(5),
-              GOTO(7,0) ],
-            'Termlog after push 6' );
+drain_termlog;
 
 is_display( [ [TEXT("Another line 5")],
               [TEXT("Another line 6")],
@@ -181,6 +149,8 @@ is_display( [ [TEXT("Another line 7")],
               [TEXT("A line while ")],
               [TEXT("offscreen")] ],
             'Display after push while offscreen' );
+
+is_cursorpos( 7, 0, 'Cursor position after push while offscreen' );
 
 $scroller->scroll_to_top;
 

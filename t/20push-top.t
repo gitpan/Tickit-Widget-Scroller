@@ -96,22 +96,15 @@ flush_tickit;
 is_termlog( [ GOTO(5,0),
               SETPEN,
               PRINT("An item of text that"),
-              SETBG(undef),
-              SCROLLRECT(0,0,6,20, 1,0),
-              GOTO(5,0),
-              SETPEN,
-              PRINT("wraps"),
-              SETBG(undef),
-              ERASECH(15),
               GOTO(7,0) ],
             'Termlog after push scroll' );
 
-is_display( [ [TEXT("Another line 1")],
+is_display( [ [TEXT("A line of text")],
+              [TEXT("Another line 1")],
               [TEXT("Another line 2")],
               [TEXT("Another line 3")],
               [TEXT("Another line 4")],
-              [TEXT("An item of text that")],
-              [TEXT("wraps")] ],
+              [TEXT("An item of text that")] ],
             'Display after push scroll' );
 
 is_cursorpos( 7, 0, 'Cursor position after push scroll' );
@@ -122,45 +115,15 @@ $scroller->push(
 
 flush_tickit;
 
-is_termlog( [ GOTO(0,0),
-              SETPEN,
-              PRINT("Another line 5"),
-              SETBG(undef),
-              ERASECH(6),
-              GOTO(1,0),
-              SETPEN,
-              PRINT("Another line 6"),
-              SETBG(undef),
-              ERASECH(6),
-              GOTO(2,0),
-              SETPEN,
-              PRINT("Another line 7"),
-              SETBG(undef),
-              ERASECH(6),
-              GOTO(3,0),
-              SETPEN,
-              PRINT("Another line 8"),
-              SETBG(undef),
-              ERASECH(6),
-              GOTO(4,0),
-              SETPEN,
-              PRINT("Another line 9"),
-              SETBG(undef),
-              ERASECH(6),
-              GOTO(5,0),
-              SETPEN,
-              PRINT("Another line 10"),
-              SETBG(undef),
-              ERASECH(5),
-              GOTO(7,0) ],
+is_termlog( [],
             'Termlog after push 6' );
 
-is_display( [ [TEXT("Another line 5")],
-              [TEXT("Another line 6")],
-              [TEXT("Another line 7")],
-              [TEXT("Another line 8")],
-              [TEXT("Another line 9")],
-              [TEXT("Another line 10")] ],
+is_display( [ [TEXT("A line of text")],
+              [TEXT("Another line 1")],
+              [TEXT("Another line 2")],
+              [TEXT("Another line 3")],
+              [TEXT("Another line 4")],
+              [TEXT("An item of text that")] ],
             'Display after push 6' );
 
 is_cursorpos( 7, 0, 'Cursor position after push 6' );
@@ -174,12 +137,12 @@ $scroller->set_window( $win );
 flush_tickit;
 drain_termlog;
 
-is_display( [ [TEXT("Another line 7")],
-              [TEXT("Another line 8")],
-              [TEXT("Another line 9")],
-              [TEXT("Another line 10")],
-              [TEXT("A line while ")],
-              [TEXT("offscreen")] ],
+is_display( [ [TEXT("A line of text")],
+              [TEXT("Another line 1")],
+              [TEXT("Another line 2")],
+              [TEXT("Another line 3")],
+              [TEXT("Another line 4")],
+              [TEXT("An item of text that")] ],
             'Display after push while offscreen' );
 
 $scroller->scroll_to_top;

@@ -1,5 +1,8 @@
 Revision history for Tickit-Widget-Scroller
 
+0.10    CHANGES:
+         * Added ->unshift operation analogous to ->push
+
 0.09    CHANGES:
          * Added indicators (may require Tickit 0.24 to scroll efficiently)
          * Added ->lines_above, ->lines_below

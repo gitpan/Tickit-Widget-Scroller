@@ -58,9 +58,9 @@ CONSTRUCTOR
     Takes the following named arguments:
 
     gravity => STRING
-            Optional. If given the value `bottom', resize events will
-            attempt to preserve the item at the bottom of the screen.
-            Otherwise, will preserve the top.
+            Optional. If given the value `bottom', resize events and the
+            `push' method will attempt to preserve the item at the bottom of
+            the screen. Otherwise, will preserve the top.
 
     gen_top_indicator => CODE
     gen_bottom_indicator => CODE
@@ -72,10 +72,21 @@ METHODS
     Append the given items to the end of the list.
 
     If the Scroller is already at the tail (that is, the last line of the
-    last item is on display), the newly added items will be displayed,
-    possibly by scrolling downward if required. While the scroller isn't
-    adjusted, by using any of the `scroll' methods, it will remain following
-    the tail of the items, scrolling itself upwards as more are added.
+    last item is on display) and the gravity mode is `bottom', the newly
+    added items will be displayed, possibly by scrolling downward if
+    required. While the scroller isn't adjusted by using any of the `scroll'
+    methods, it will remain following the tail of the items, scrolling
+    itself downwards as more are added.
+
+  $scroller->unshift( @items )
+    Prepend the given items to the beginning of the list.
+
+    If the Scroller is already at the head (that is, the first line of the
+    first item is on display) and the gravity mode is `top', the newly added
+    items will be displayed, possibly by scrolling upward if required. While
+    the scroller isn't adjusted by using any of the `scroll' methods, it
+    will remain following the head of the items, scrolling itself upwards as
+    more are added.
 
   $scroller->shift( $count )
     Remove the given number of items from the start of the list.
