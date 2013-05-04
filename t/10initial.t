@@ -1,8 +1,9 @@
 #!/usr/bin/perl
 
 use strict;
+use warnings;
 
-use Test::More tests => 30;
+use Test::More;
 
 use Tickit::Test;
 
@@ -112,3 +113,5 @@ is( $scroller->item2line( 1, -1 ), 2, 'item2line 1, -1' );
 is( $scroller->item2line( 2 ),     3, 'item2line 2' );
 
 is( $scroller->item2line( -1 ), 3, 'item2line -1' );
+
+done_testing;

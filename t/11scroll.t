@@ -1,8 +1,9 @@
 #!/usr/bin/perl
 
 use strict;
+use warnings;
 
-use Test::More tests => 41;
+use Test::More;
 
 use Tickit::Test 0.12;
 
@@ -307,3 +308,5 @@ is_display( [ [TEXT("which is long")],
               [TEXT("Item of text 9 ")],
               [TEXT("which is long")] ],
             'Display after scroll down past the end' );
+
+done_testing;

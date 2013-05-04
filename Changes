@@ -1,5 +1,8 @@
 Revision history for Tickit-Widget-Scroller
 
+0.11    CHANGES:
+         * Updated to use Tickit::Style and Tickit::RenderContext
+
 0.10    CHANGES:
          * Added ->unshift operation analogous to ->push
 

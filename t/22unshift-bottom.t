@@ -1,8 +1,9 @@
 #!/usr/bin/perl
 
 use strict;
+use warnings;
 
-use Test::More tests => 21;
+use Test::More;
 
 use Tickit::Test 0.12;
 
@@ -182,3 +183,5 @@ is_display( [ [TEXT("wraps")],
             'Display after unshift at head' );
 
 is_cursorpos( 7, 0, 'Cursor position after unshift at head' );
+
+done_testing;

@@ -1,14 +1,14 @@
 #  You may distribute under the terms of either the GNU General Public License
 #  or the Artistic License (the same terms as Perl itself)
 #
-#  (C) Paul Evans, 2011-2012 -- leonerd@leonerd.org.uk
+#  (C) Paul Evans, 2011-2013 -- leonerd@leonerd.org.uk
 
 package Tickit::Widget::Scroller::Item::Text;
 
 use strict;
 use warnings;
 
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 
 use Tickit::Utils qw( textwidth cols2chars );
 
@@ -178,7 +178,7 @@ sub height_for_width
 sub render
 {
    my $self = shift;
-   my ( $win, %args ) = @_;
+   my ( $rc, %args ) = @_;
 
    my $cols = $args{width};
 
@@ -190,18 +190,21 @@ sub render
    foreach my $lineidx ( $args{firstline} .. $args{lastline} ) {
       my $indent = ( $lineidx && $self->{indent} ) ? $self->{indent} : 0;
 
-      $win->goto( $args{top} + $lineidx, 0 );
-      $win->erasech( $indent, 1 ) if $indent;
+      $rc->goto( $lineidx, 0 );
+      $rc->erase( $indent ) if $indent;
 
-      my $spare = $cols;
       foreach my $chunk ( @{ $lineruns->[$lineidx] } ) {
-         my ( $text, $width, $pen ) = @$chunk;
+         my ( $text, $width, $chunkpen ) = @$chunk;
 
-         $win->print( $text, $pen ? ( $pen ) : () );
-         $spare -= $width;
+         $rc->savepen;
+         $rc->setpen( $chunkpen ) if defined $chunkpen;
+
+         $rc->text( $text );
+
+         $rc->restore;
       }
 
-      $win->erasech( $spare ) if $spare > 0;
+      $rc->erase_to( $rc->cols );
    }
 }
 

@@ -1,8 +1,9 @@
 #!/usr/bin/perl
 
 use strict;
+use warnings;
 
-use Test::More tests => 4;
+use Test::More;
 
 use Tickit::Test;
 
@@ -68,3 +69,5 @@ is_display( [ "line 6",
               "A line of content at",
               "line 8", ],
             'Display after resize fewer columns' );
+
+done_testing;

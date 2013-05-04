@@ -6,10 +6,11 @@ WriteMakefile
   'VERSION_FROM' => 'lib/Tickit/Widget/Scroller.pm',
   'PREREQ_PM' => {
                    'String::Tagged' => 0,
-                   'Test::More' => 0,
+                   'Test::More' => '0.88',
                    'Tickit::Pen' => '0.19',
+                   'Tickit::RenderContext' => '0.03',
                    'Tickit::Test' => '0.12',
-                   'Tickit::Widget' => '0.11',
+                   'Tickit::Widget' => '0.29',
                    'Tickit::Window' => '0.22'
                  },
   'INSTALLDIRS' => 'site',

@@ -1,8 +1,9 @@
 #!/usr/bin/perl
 
 use strict;
+use warnings;
 
-use Test::More tests => 15;
+use Test::More;
 
 use Tickit::Test 0.12;
 
@@ -161,3 +162,5 @@ is_display( [ [TEXT("Existing line 12")],
               [TEXT("Existing line 16")],
               [TEXT("Existing line 17")] ],
             'Display after shift 6 at top' );
+
+done_testing;

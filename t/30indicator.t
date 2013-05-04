@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 
 use strict;
+use warnings;
 
 use Test::More;
 
@@ -11,10 +12,8 @@ use Tickit::Widget::Scroller::Item::Text;
 
 # These tests depend on the Window scrollrect behaviour added in Tickit 0.24
 # but the actual functionallity will work fine without
-eval {
-   require Tickit::Window; Tickit::Window->VERSION( '0.24' );
-   plan tests => 8;
-} or plan skip_all => "Tickit::Window older than 0.24";
+eval { require Tickit::Window; Tickit::Window->VERSION( '0.24' ) }
+   or plan skip_all => "Tickit::Window older than 0.24";
 
 my $win = mk_window;
 
@@ -80,11 +79,9 @@ is_display( [ [TEXT("Line 3 of content" . (" "x37)), TEXT("-- Start{2/0} items{5
 $scroller->set_gen_top_indicator( undef );
 flush_tickit;
 
-is_termlog( [ GOTO(0,0),
+is_termlog( [ GOTO(0,54),
               SETPEN,
-              PRINT("Line 3 of content"),
-              SETBG(undef),
-              ERASECH(63) ],
+              ERASECH(26) ],
             'Termlog after removing top indicator' );
 
 is_display( [ map { "Line $_ of content" } 3 .. 27 ],
@@ -105,3 +102,5 @@ is_termlog( [ GOTO(24,70),
 is_display( [ ( map { "Line $_ of content" } 3 .. 26 ),
               [TEXT("Line 27 of content" . (" "x52)), TEXT("-- more --",rv=>1) ] ],
             'Display after setting bottom indicator' );
+
+done_testing;

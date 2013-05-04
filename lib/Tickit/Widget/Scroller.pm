@@ -8,15 +8,20 @@ package Tickit::Widget::Scroller;
 use strict;
 use warnings;
 use base qw( Tickit::Widget );
-Tickit::Widget->VERSION( '0.06' );
+use Tickit::Style;
+Tickit::Widget->VERSION( '0.29' );
 Tickit::Window->VERSION( '0.22' );
 
 use Tickit::Window;
 use Tickit::Utils qw( textwidth );
+use Tickit::RenderContext 0.03;
 
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 
 use Carp;
+
+style_definition base =>
+   indicator_rv => 1;
 
 =head1 NAME
 
@@ -50,6 +55,19 @@ view of the items is scrollable, able to display only a part of the list.
 
 A Scroller widget stores a list of instances implementing the
 C<Tickit::Widget::Scroller::Item> interface.
+
+=head1 STYLE
+
+The following style pen prefixes are used:
+
+=over 4
+
+=item indicator => PEN
+
+The pen used for the scroll position indicators at the top or bottom of the
+display
+
+=back
 
 =cut
 
@@ -126,8 +144,6 @@ sub new
 
    my $self = $class->SUPER::new( %args );
 
-   $self->_init_indicator_pen;
-
    # We're going to cache window height because we need pre-resize height
    # during resize event
    $self->{window_lines} = undef;
@@ -151,8 +167,6 @@ sub new
 
 sub cols  { 1 }
 sub lines { 1 }
-
-sub CLEAR_BEFORE_RENDER { 0 }
 
 sub _item
 {
@@ -252,14 +266,22 @@ sub push
       my $new_start = $oldlast + 1;
       my $new_stop  = $new_start + $added;
 
+      my $rc = Tickit::RenderContext->new(
+         lines => $win->lines,
+         cols  => $win->cols,
+      );
+      $rc->setpen( $win->pen );
+
       if( $self->{gravity_bottom} ) {
          # If there were enough spare lines, render them, otherwise scroll
          if( $new_stop <= $lines ) {
-            $self->render_lines( $new_start, $new_stop );
+            $self->render_lines( $new_start, $new_stop, $rc );
+            $rc->render_to_window( $win );
             $win->restore;
          }
          else {
-            $self->render_lines( $new_start, $lines ) if $new_start < $lines;
+            $self->render_lines( $new_start, $lines, $rc ) if $new_start < $lines;
+            $rc->render_to_window( $win );
             $self->scroll( $new_stop - $lines );
          }
       }
@@ -267,7 +289,8 @@ sub push
          # If any new lines of content are now on display, render them
          $new_stop = $lines if $new_stop > $lines;
          if( $new_stop > $new_start ) {
-            $self->render_lines( $new_start, $new_stop );
+            $self->render_lines( $new_start, $new_stop, $rc );
+            $rc->render_to_window( $win );
             $win->restore;
          }
       }
@@ -313,6 +336,12 @@ sub unshift :method
 
       my $lines = $self->{window_lines};
 
+      my $rc = Tickit::RenderContext->new(
+         lines => $win->lines,
+         cols  => $win->cols,
+      );
+      $rc->setpen( $win->pen );
+
       if( $self->{gravity_bottom} ) {
          # If the display wasn't yet full, scroll it down to display any new
          # lines that are visible
@@ -325,7 +354,8 @@ sub unshift :method
          else {
             $self->{start_item} = 0;
             # TODO: if $added > $lines, need special handling
-            $self->render_lines( 0, $added );
+            $self->render_lines( 0, $added, $rc );
+            $rc->render_to_window( $win );
             $win->restore;
          }
       }
@@ -338,7 +368,8 @@ sub unshift :method
             my $new_stop = $added;
             $new_stop = $lines if $new_stop > $lines;
             $self->{start_item} = 0;
-            $self->render_lines( 0, $new_stop );
+            $self->render_lines( 0, $new_stop, $rc );
+            $rc->render_to_window( $win );
             $win->restore;
          }
       }
@@ -759,26 +790,34 @@ sub lines_below
    return $line - $self->window->lines + 1;
 }
 
+use constant CLEAR_BEFORE_RENDER => 0;
 sub render
 {
    my $self = shift;
    my %args = @_;
-
-   my $rect = $args{rect};
-
    my $win = $self->window or return;
    $win->is_visible or return;
 
-   $self->render_lines( $rect->top, $rect->bottom );
+   my $rect = $args{rect};
+
+   my $rc = Tickit::RenderContext->new(
+      lines => $win->lines,
+      cols  => $win->cols,
+   );
+   $rc->clip( $rect );
+   $rc->setpen( $win->pen );
+
+   $self->render_lines( $rect->top, $rect->bottom, $rc );
+
+   $rc->render_to_window( $win );
 }
 
 sub render_lines
 {
    my $self = shift;
-   my ( $startline, $endline ) = @_;
+   my ( $startline, $endline, $rc ) = @_;
 
-   my $win = $self->window or return;
-   my $cols = $win->cols;
+   my $cols = $rc->cols;
 
    my $items = $self->{items};
 
@@ -801,20 +840,33 @@ sub render_lines
 
       next if $firstline >= $itemheight;
 
-      my $lastline =  ( $endline < $line ) ? $endline - $top : $itemheight;
+      $rc->save;
+      {
+         my $lastline = ( $endline < $line ) ? $endline - $top : $itemheight;
 
-      $item->render( $win,
-         top       => $top,
-         firstline => $firstline,
-         lastline  => $lastline - 1,
-         width     => $cols,
-         height    => $itemheight,
-      );
+         $rc->translate( $top, 0 );
+         $rc->clip( Tickit::Rect->new(
+            top    => $firstline,
+            bottom => $lastline,
+            left   => 0,
+            cols   => $cols,
+         ) );
+
+         $item->render( $rc,
+            top       => 0,
+            firstline => $firstline,
+            lastline  => $lastline - 1,
+            width     => $cols,
+            height    => $itemheight,
+         );
+
+      }
+      $rc->restore;
    }
 
    while( $line < $endline ) {
-      $win->goto( $line, 0 );
-      $win->erasech( $cols );
+      $rc->goto( $line, 0 );
+      $rc->erase( $cols );
       $line++;
    }
 }
@@ -889,16 +941,6 @@ sub set_gen_bottom_indicator
    $self->update_indicators;
 }
 
-=head2 $pen = $scroller->indicator_pen
-
-=head2 $scroller->set_indicator_pen( $pen )
-
-Accessors for the pen used to draw the indicator windows.
-
-=cut
-
-use Tickit::WidgetRole::Penable name => "indicator", default => { rv => 1 };
-
 =head2 $scroller->update_indicators
 
 Calls any defined generators for indicator text, and updates the indicator
@@ -942,7 +984,7 @@ sub update_indicators
          $floatwin->set_on_expose( sub {
             my $win = shift;
             $win->goto( 0, 0 );
-            $win->print( $self->{$text_field}, $self->indicator_pen );
+            $win->print( $self->{$text_field}, $self->get_style_pen( "indicator" ) );
          } );
          $self->{"${edge}_indicator_win"} = $floatwin;
       }

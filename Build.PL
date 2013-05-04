@@ -7,13 +7,14 @@ my $build = Module::Build->new(
    module_name => 'Tickit::Widget::Scroller',
    requires => {
       'String::Tagged' => 0,
+      'Tickit::RenderContext' => '0.03',
       'Tickit::Test' => '0.12',
-      'Tickit::Widget' => '0.11',
+      'Tickit::Widget' => '0.29',
       'Tickit::Window' => '0.22',
       'Tickit::Pen' => '0.19',
    },
    build_requires => {
-      'Test::More' => 0,
+      'Test::More' => '0.88', # done_testing
    },
    auto_configure_requires => 0, # Don't add M::B to configure_requires
    license => 'perl',

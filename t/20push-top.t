@@ -1,8 +1,9 @@
 #!/usr/bin/perl
 
 use strict;
+use warnings;
 
-use Test::More tests => 21;
+use Test::More;
 
 use Tickit::Test 0.12;
 
@@ -176,3 +177,5 @@ is_display( [ [TEXT("A line of text")],
             'Display after push at head' );
 
 is_cursorpos( 7, 0, 'Cursor position after push at head' );
+
+done_testing;

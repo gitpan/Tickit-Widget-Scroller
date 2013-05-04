@@ -29,6 +29,13 @@ DESCRIPTION
     A Scroller widget stores a list of instances implementing the
     `Tickit::Widget::Scroller::Item' interface.
 
+STYLE
+    The following style pen prefixes are used:
+
+    indicator => PEN
+        The pen used for the scroll position indicators at the top or bottom
+        of the display
+
 KEYBINDINGS
     The following keys are bound
 
@@ -164,10 +171,6 @@ METHODS
 
     The ability to pass method names allows subclasses to easily implement
     custom logic as methods without having to capture a closure.
-
-  $pen = $scroller->indicator_pen
-  $scroller->set_indicator_pen( $pen )
-    Accessors for the pen used to draw the indicator windows.
 
   $scroller->update_indicators
     Calls any defined generators for indicator text, and updates the

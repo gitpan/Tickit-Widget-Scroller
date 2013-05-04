@@ -3,7 +3,7 @@ abstract: 'a widget displaying a scrollable collection of'
 author:
   - 'Paul Evans <leonerd@leonerd.org.uk>'
 build_requires:
-  Test::More: 0
+  Test::More: 0.88
 dynamic_config: 1
 generated_by: 'Module::Build version 0.4001, CPAN::Meta::Converter version 2.120921'
 license: perl
@@ -14,19 +14,20 @@ name: Tickit-Widget-Scroller
 provides:
   Tickit::Widget::Scroller:
     file: lib/Tickit/Widget/Scroller.pm
-    version: 0.10
+    version: 0.11
   Tickit::Widget::Scroller::Item::RichText:
     file: lib/Tickit/Widget/Scroller/Item/RichText.pm
-    version: 0.10
+    version: 0.11
   Tickit::Widget::Scroller::Item::Text:
     file: lib/Tickit/Widget/Scroller/Item/Text.pm
-    version: 0.10
+    version: 0.11
 requires:
   String::Tagged: 0
   Tickit::Pen: 0.19
+  Tickit::RenderContext: 0.03
   Tickit::Test: 0.12
-  Tickit::Widget: 0.11
+  Tickit::Widget: 0.29
   Tickit::Window: 0.22
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.10
+version: 0.11
