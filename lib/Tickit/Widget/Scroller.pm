@@ -16,12 +16,9 @@ use Tickit::Window;
 use Tickit::Utils qw( textwidth );
 use Tickit::RenderContext 0.03;
 
-our $VERSION = '0.11';
+our $VERSION = '0.12';
 
 use Carp;
-
-style_definition base =>
-   indicator_rv => 1;
 
 =head1 NAME
 
@@ -58,6 +55,8 @@ C<Tickit::Widget::Scroller::Item> interface.
 
 =head1 STYLE
 
+The default style pen is used as the widget pen.
+
 The following style pen prefixes are used:
 
 =over 4
@@ -70,6 +69,11 @@ display
 =back
 
 =cut
+
+style_definition base =>
+   indicator_rv => 1;
+
+use constant WIDGET_PEN_FROM_STYLE => 1;
 
 =head1 KEYBINDINGS
 
@@ -251,7 +255,7 @@ sub push
 
    push @$items, @_;
 
-   if( my $win = $self->window ) {
+   if( my $win = $self->window and $self->window->is_visible ) {
       my $added = 0;
       $added += $self->_itemheight( $_ ) for $oldsize .. $#$items;
 
@@ -266,22 +270,19 @@ sub push
       my $new_start = $oldlast + 1;
       my $new_stop  = $new_start + $added;
 
-      my $rc = Tickit::RenderContext->new(
-         lines => $win->lines,
-         cols  => $win->cols,
-      );
+      my $rc = Tickit::RenderContext->new( lines => $win->lines, cols => $win->cols );
       $rc->setpen( $win->pen );
 
       if( $self->{gravity_bottom} ) {
          # If there were enough spare lines, render them, otherwise scroll
          if( $new_stop <= $lines ) {
             $self->render_lines( $new_start, $new_stop, $rc );
-            $rc->render_to_window( $win );
+            $rc->flush_to_window( $win );
             $win->restore;
          }
          else {
             $self->render_lines( $new_start, $lines, $rc ) if $new_start < $lines;
-            $rc->render_to_window( $win );
+            $rc->flush_to_window( $win );
             $self->scroll( $new_stop - $lines );
          }
       }
@@ -290,7 +291,7 @@ sub push
          $new_stop = $lines if $new_stop > $lines;
          if( $new_stop > $new_start ) {
             $self->render_lines( $new_start, $new_stop, $rc );
-            $rc->render_to_window( $win );
+            $rc->flush_to_window( $win );
             $win->restore;
          }
       }
@@ -326,7 +327,7 @@ sub unshift :method
    unshift @{ $self->{itemheights} }, ( undef ) x @_;
    $self->{start_item} += @_;
 
-   if( my $win = $self->window ) {
+   if( my $win = $self->window and $self->window->is_visible ) {
       my $added = 0;
       $added += $self->_itemheight( $_ ) for 0 .. $#_;
 
@@ -336,10 +337,7 @@ sub unshift :method
 
       my $lines = $self->{window_lines};
 
-      my $rc = Tickit::RenderContext->new(
-         lines => $win->lines,
-         cols  => $win->cols,
-      );
+      my $rc = Tickit::RenderContext->new( lines => $win->lines, cols => $win->cols );
       $rc->setpen( $win->pen );
 
       if( $self->{gravity_bottom} ) {
@@ -355,7 +353,7 @@ sub unshift :method
             $self->{start_item} = 0;
             # TODO: if $added > $lines, need special handling
             $self->render_lines( 0, $added, $rc );
-            $rc->render_to_window( $win );
+            $rc->flush_to_window( $win );
             $win->restore;
          }
       }
@@ -369,7 +367,7 @@ sub unshift :method
             $new_stop = $lines if $new_stop > $lines;
             $self->{start_item} = 0;
             $self->render_lines( 0, $new_stop, $rc );
-            $rc->render_to_window( $win );
+            $rc->flush_to_window( $win );
             $win->restore;
          }
       }
@@ -800,16 +798,13 @@ sub render
 
    my $rect = $args{rect};
 
-   my $rc = Tickit::RenderContext->new(
-      lines => $win->lines,
-      cols  => $win->cols,
-   );
+   my $rc = Tickit::RenderContext->new( lines => $win->lines, cols => $win->cols );
    $rc->clip( $rect );
    $rc->setpen( $win->pen );
 
    $self->render_lines( $rect->top, $rect->bottom, $rc );
 
-   $rc->render_to_window( $win );
+   $rc->flush_to_window( $win );
 }
 
 sub render_lines

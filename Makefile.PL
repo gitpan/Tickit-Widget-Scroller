@@ -8,7 +8,7 @@ WriteMakefile
                    'String::Tagged' => 0,
                    'Test::More' => '0.88',
                    'Tickit::Pen' => '0.19',
-                   'Tickit::RenderContext' => '0.03',
+                   'Tickit::RenderContext' => '0.07',
                    'Tickit::Test' => '0.12',
                    'Tickit::Widget' => '0.29',
                    'Tickit::Window' => '0.22'

@@ -30,6 +30,8 @@ DESCRIPTION
     `Tickit::Widget::Scroller::Item' interface.
 
 STYLE
+    The default style pen is used as the widget pen.
+
     The following style pen prefixes are used:
 
     indicator => PEN

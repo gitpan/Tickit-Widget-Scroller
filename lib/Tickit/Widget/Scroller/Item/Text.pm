@@ -8,7 +8,7 @@ package Tickit::Widget::Scroller::Item::Text;
 use strict;
 use warnings;
 
-our $VERSION = '0.11';
+our $VERSION = '0.12';
 
 use Tickit::Utils qw( textwidth cols2chars );
 
@@ -195,13 +195,7 @@ sub render
 
       foreach my $chunk ( @{ $lineruns->[$lineidx] } ) {
          my ( $text, $width, $chunkpen ) = @$chunk;
-
-         $rc->savepen;
-         $rc->setpen( $chunkpen ) if defined $chunkpen;
-
-         $rc->text( $text );
-
-         $rc->restore;
+         $rc->text( $text, $chunkpen );
       }
 
       $rc->erase_to( $rc->cols );
