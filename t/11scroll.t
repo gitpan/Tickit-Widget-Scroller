@@ -309,4 +309,46 @@ is_display( [ [TEXT("which is long")],
               [TEXT("which is long")] ],
             'Display after scroll down past the end' );
 
+$scroller->scroll( -2 );
+$scroller->scroll( -2 );
+flush_tickit;
+
+is_termlog( [ SETBG(undef),
+              SCROLLRECT(0,0,5,15, -2,0),
+              SETBG(undef),
+              SCROLLRECT(0,0,5,15, -2,0),
+              GOTO(0,0), SETPEN, PRINT("which is long"), SETBG(undef), ERASECH(2),
+              GOTO(1,0), SETPEN, PRINT("Item of text 6 "),
+              GOTO(2,0), SETPEN, PRINT("which is long"), SETBG(undef), ERASECH(2),
+              GOTO(3,0), SETPEN, PRINT("Item of text 7 "), ],
+            'Termlog after ->scroll(-2) x 2' );
+
+is_display( [ [TEXT("which is long")],
+              [TEXT("Item of text 6 ")],
+              [TEXT("which is long")],
+              [TEXT("Item of text 7 ")],
+              [TEXT("which is long")] ],
+            'Display after ->scroll(-2) x 2' );
+
+$scroller->scroll( +2 );
+$scroller->scroll( +2 );
+flush_tickit;
+
+is_termlog( [ SETBG(undef),
+              SCROLLRECT(0,0,5,15, +2,0),
+              SETBG(undef),
+              SCROLLRECT(0,0,5,15, +2,0),
+              GOTO(1,0), SETPEN, PRINT("Item of text 8 "),
+              GOTO(2,0), SETPEN, PRINT("which is long"), SETBG(undef), ERASECH(2),
+              GOTO(3,0), SETPEN, PRINT("Item of text 9 "),
+              GOTO(4,0), SETPEN, PRINT("which is long"), SETBG(undef), ERASECH(2), ],
+            'Termlog after ->scroll(+2) x 2' );
+
+is_display( [ [TEXT("which is long")],
+              [TEXT("Item of text 8 ")],
+              [TEXT("which is long")],
+              [TEXT("Item of text 9 ")],
+              [TEXT("which is long")] ],
+            'Display after ->scroll(+2) x 2' );
+
 done_testing;

@@ -16,7 +16,7 @@ use Tickit::Window;
 use Tickit::Utils qw( textwidth );
 use Tickit::RenderBuffer;
 
-our $VERSION = '0.13';
+our $VERSION = '0.14';
 
 use Carp;
 
@@ -170,9 +170,9 @@ sub new
 =cut
 
 sub cols  { 1 }
+sub lines { 1 }
 
-# Try to claim the number of lines we'd need for the content we actually have
-sub lines
+sub _need_lines
 {
    my $self = shift;
    return $self->{need_lines} ||= do {
@@ -223,6 +223,7 @@ sub reshape
 
    if( defined $itemidx ) {
       $self->scroll_to( $self->{gravity_bottom} ? -1 : 0, $itemidx, $itemline );
+      $self->update_indicators;
    }
 }
 
@@ -565,7 +566,7 @@ sub scroll_to
       croak '$itemline out of bounds' if $itemline >= $itemheight;
    }
 
-   $line -= $itemline;
+   $line -= $itemline; # now ignore itemline
 
    while( $line > 0 ) {
       if( $itemidx == 0 ) {
@@ -577,14 +578,28 @@ sub scroll_to
 
       $line -= $itemheight;
    }
+   $itemline = -$line; # $line = 0;
 
-   $self->{start_item}    = $itemidx;
-   $self->{start_partial} = -$line;
+   # Now we want $itemidx line $itemline to be on physical line 0
 
-   # TODO: Work out if this is doable by delta scrolling
-   $self->redraw;
+   # Work out how far away that is
+   my $delta = 0;
+   my $i = $self->{start_item};
 
-   $self->update_indicators;
+   $delta -= $self->{start_partial};
+   while( $itemidx > $i ) {
+      $delta += $self->_itemheight( $i );
+      $i++;
+   }
+   while( $itemidx < $i ) {
+      $i--;
+      $delta -= $self->_itemheight( $i );
+   }
+   $delta += $itemline;
+
+   return if !$delta;
+
+   $self->scroll( $delta );
 }
 
 =head2 $scroller->scroll_to_top( $itemidx, $itemline )

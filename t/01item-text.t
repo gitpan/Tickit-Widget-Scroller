@@ -6,7 +6,7 @@ use warnings;
 use Test::More;
 
 use Tickit::Test 0.12;
-use Tickit::RenderContext;
+use Tickit::RenderBuffer;
 
 use Tickit::Widget::Scroller::Item::Text;
 
@@ -22,11 +22,11 @@ is_deeply( [ $item->chunks ],
 
 is( $item->height_for_width( 80 ), 1, 'height_for_width 80' );
 
-my $rc = Tickit::RenderContext->new( lines => $win->lines, cols => $win->cols );
-$rc->setpen( $win->pen );
+my $rb = Tickit::RenderBuffer->new( lines => $win->lines, cols => $win->cols );
+$rb->setpen( $win->pen );
 
-$item->render( $rc, top => 0, firstline => 0, lastline => 0, width => 80, height => 25 );
-$rc->render_to_window( $win );
+$item->render( $rb, top => 0, firstline => 0, lastline => 0, width => 80, height => 25 );
+$rb->flush_to_window( $win );
 
 flush_tickit;
 
@@ -46,13 +46,13 @@ drain_termlog;
 {
    my $subwin = $win->make_sub( 0, 0, 10, 12 );
 
-   my $subrc = Tickit::RenderContext->new( lines => $subwin->lines, cols => $subwin->cols );
+   my $subrc = Tickit::RenderBuffer->new( lines => $subwin->lines, cols => $subwin->cols );
    $subrc->setpen( $subwin->pen );
 
    is( $item->height_for_width( 12 ), 2, 'height_for_width 12' );
 
    $item->render( $subrc, top => 0, firstline => 0, lastline => 1, width => 12, height => 10 );
-   $subrc->render_to_window( $subwin );
+   $subrc->flush_to_window( $subwin );
 
    flush_tickit;
 
@@ -77,7 +77,7 @@ drain_termlog;
    is( $indenteditem->height_for_width( 12 ), 2, 'height_for_width 12 with indent' );
 
    $indenteditem->render( $subrc, top => 0, firstline => 0, lastline => 1, width => 12, height => 10 );
-   $subrc->render_to_window( $subwin );
+   $subrc->flush_to_window( $subwin );
 
    flush_tickit;
 
@@ -109,11 +109,11 @@ drain_termlog;
 
    is( $item->height_for_width( 9 ), 2, 'height_for_width 2 for splitting boundary' );
 
-   my $subrc = Tickit::RenderContext->new( lines => 2, cols => 9 );
+   my $subrc = Tickit::RenderBuffer->new( lines => 2, cols => 9 );
    $subrc->setpen( $win->pen );
 
    $item->render( $subrc, top => 0, firstline => 0, lastline => 1, width => 9, height => 2 );
-   $subrc->render_to_window( $win );
+   $subrc->flush_to_window( $win );
 
    flush_tickit;
 
@@ -144,8 +144,8 @@ drain_termlog;
 
    is( $item->height_for_width( 80 ), 2, 'height_for_width 2 with linefeeds' );
 
-   $item->render( $rc, top => 0, firstline => 0, lastline => 1, width => 80, height => 2 );
-   $rc->render_to_window( $win );
+   $item->render( $rb, top => 0, firstline => 0, lastline => 1, width => 80, height => 2 );
+   $rb->flush_to_window( $win );
 
    flush_tickit;
 
@@ -181,8 +181,8 @@ drain_termlog;
 
    is( $item->height_for_width( 80 ), 1, 'height_for_width 2 with Unicode' );
 
-   $item->render( $rc, top => 0, firstline => 0, lastline => 0, width => 80, height => 1 );
-   $rc->render_to_window( $win );
+   $item->render( $rb, top => 0, firstline => 0, lastline => 0, width => 80, height => 1 );
+   $rb->flush_to_window( $win );
 
    flush_tickit;
 

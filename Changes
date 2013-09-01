@@ -1,5 +1,14 @@
 Revision history for Tickit-Widget-Scroller
 
+0.14    2013/09/02 00:44:56
+        [CHANGES]
+         * Don't declare linecount as ->lines after all, as it breaks things
+         * Implement ->scroll_to on top of ->scroll, preparing for use via
+           Tickit::Widget::ScrollBox
+
+        [BUGFIXES]
+         * Update unit tests to use RenderBuffer instead of RenderContext
+
 0.13    2013/09/01 01:39:07
         [CHANGES]
          * Use Tickit::RenderBuffer and ->render_to_rb from

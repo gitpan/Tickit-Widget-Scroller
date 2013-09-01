@@ -6,15 +6,15 @@ use warnings;
 use Test::More;
 
 use Tickit::Test;
-use Tickit::RenderContext;
+use Tickit::RenderBuffer;
 
 use String::Tagged;
 use Tickit::Widget::Scroller::Item::RichText;
 
 my $win = mk_window;
 
-my $rc = Tickit::RenderContext->new( lines => $win->lines, cols => $win->cols );
-$rc->setpen( $win->pen );
+my $rb = Tickit::RenderBuffer->new( lines => $win->lines, cols => $win->cols );
+$rb->setpen( $win->pen );
 
 my $str = String::Tagged->new( "My message here" );
 $str->apply_tag(  3, 7, b => 1 );
@@ -33,8 +33,8 @@ is_deeply( [ $item->chunks ],
 
 is( $item->height_for_width( 80 ), 1, 'height_for_width 80' );
 
-$item->render( $rc, top => 0, firstline => 0, lastline => 0, width => 80, height => 25 );
-$rc->render_to_window( $win );
+$item->render( $rb, top => 0, firstline => 0, lastline => 0, width => 80, height => 25 );
+$rb->flush_to_window( $win );
 
 flush_tickit;
 
@@ -87,11 +87,11 @@ is_display( [ [TEXT("My "), TEXT("message",b=>1), BLANK(1), TEXT("here",u=>1)] ]
 
    is( $item->height_for_width( 18 ), 2, 'height_for_width 18 for wrapping pen change' );
 
-   my $subrc = Tickit::RenderContext->new( lines => 2, cols => 18 );
+   my $subrc = Tickit::RenderBuffer->new( lines => 2, cols => 18 );
    $subrc->setpen( $win->pen );
 
    $item->render( $subrc, top => 0, firstline => 0, lastline => 1, width => 18, height => 2 );
-   $subrc->render_to_window( $win );
+   $subrc->flush_to_window( $win );
 
    flush_tickit;
 
