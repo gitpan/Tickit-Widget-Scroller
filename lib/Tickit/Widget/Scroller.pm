@@ -9,14 +9,14 @@ use strict;
 use warnings;
 use base qw( Tickit::Widget );
 use Tickit::Style;
-Tickit::Widget->VERSION( '0.29' );
+Tickit::Widget->VERSION( '0.35' );
 Tickit::Window->VERSION( '0.22' );
 
 use Tickit::Window;
 use Tickit::Utils qw( textwidth );
-use Tickit::RenderContext 0.03;
+use Tickit::RenderBuffer;
 
-our $VERSION = '0.12';
+our $VERSION = '0.13';
 
 use Carp;
 
@@ -170,7 +170,22 @@ sub new
 =cut
 
 sub cols  { 1 }
-sub lines { 1 }
+
+# Try to claim the number of lines we'd need for the content we actually have
+sub lines
+{
+   my $self = shift;
+   return $self->{need_lines} ||= do {
+      my $lines = 0;
+      if( $self->window ) {
+         $lines += $self->_itemheight( $_ ) for 0 .. $#{ $self->{items} };
+      }
+      else {
+         $lines += scalar @{ $self->{items} };
+      }
+      $lines;
+   };
+}
 
 sub _item
 {
@@ -198,7 +213,13 @@ sub reshape
 
    $self->{window_lines} = $self->window->lines;
 
-   undef $self->{itemheights};
+   if( !defined $self->{window_cols} or $self->{window_cols} != $self->window->cols ) {
+      $self->{window_cols} = $self->window->cols;
+
+      undef $self->{itemheights};
+      undef $self->{need_lines};
+      $self->resized;
+   }
 
    if( defined $itemidx ) {
       $self->scroll_to( $self->{gravity_bottom} ? -1 : 0, $itemidx, $itemline );
@@ -270,19 +291,13 @@ sub push
       my $new_start = $oldlast + 1;
       my $new_stop  = $new_start + $added;
 
-      my $rc = Tickit::RenderContext->new( lines => $win->lines, cols => $win->cols );
-      $rc->setpen( $win->pen );
-
       if( $self->{gravity_bottom} ) {
          # If there were enough spare lines, render them, otherwise scroll
          if( $new_stop <= $lines ) {
-            $self->render_lines( $new_start, $new_stop, $rc );
-            $rc->flush_to_window( $win );
-            $win->restore;
+            $self->render_lines( $new_start, $new_stop );
          }
          else {
-            $self->render_lines( $new_start, $lines, $rc ) if $new_start < $lines;
-            $rc->flush_to_window( $win );
+            $self->render_lines( $new_start, $lines ) if $new_start < $lines;
             $self->scroll( $new_stop - $lines );
          }
       }
@@ -290,9 +305,7 @@ sub push
          # If any new lines of content are now on display, render them
          $new_stop = $lines if $new_stop > $lines;
          if( $new_stop > $new_start ) {
-            $self->render_lines( $new_start, $new_stop, $rc );
-            $rc->flush_to_window( $win );
-            $win->restore;
+            $self->render_lines( $new_start, $new_stop );
          }
       }
    }
@@ -337,9 +350,6 @@ sub unshift :method
 
       my $lines = $self->{window_lines};
 
-      my $rc = Tickit::RenderContext->new( lines => $win->lines, cols => $win->cols );
-      $rc->setpen( $win->pen );
-
       if( $self->{gravity_bottom} ) {
          # If the display wasn't yet full, scroll it down to display any new
          # lines that are visible
@@ -352,9 +362,7 @@ sub unshift :method
          else {
             $self->{start_item} = 0;
             # TODO: if $added > $lines, need special handling
-            $self->render_lines( 0, $added, $rc );
-            $rc->flush_to_window( $win );
-            $win->restore;
+            $self->render_lines( 0, $added );
          }
       }
       else {
@@ -366,9 +374,7 @@ sub unshift :method
             my $new_stop = $added;
             $new_stop = $lines if $new_stop > $lines;
             $self->{start_item} = 0;
-            $self->render_lines( 0, $new_stop, $rc );
-            $rc->flush_to_window( $win );
-            $win->restore;
+            $self->render_lines( 0, $new_stop );
          }
       }
    }
@@ -788,31 +794,27 @@ sub lines_below
    return $line - $self->window->lines + 1;
 }
 
-use constant CLEAR_BEFORE_RENDER => 0;
-sub render
-{
-   my $self = shift;
-   my %args = @_;
-   my $win = $self->window or return;
-   $win->is_visible or return;
-
-   my $rect = $args{rect};
-
-   my $rc = Tickit::RenderContext->new( lines => $win->lines, cols => $win->cols );
-   $rc->clip( $rect );
-   $rc->setpen( $win->pen );
-
-   $self->render_lines( $rect->top, $rect->bottom, $rc );
-
-   $rc->flush_to_window( $win );
-}
-
 sub render_lines
 {
    my $self = shift;
-   my ( $startline, $endline, $rc ) = @_;
+   my ( $startline, $endline ) = @_;
 
-   my $cols = $rc->cols;
+   my $win = $self->window or return;
+   $win->expose( Tickit::Rect->new(
+      top    => $startline,
+      bottom => $endline,
+      left   => 0,
+      right  => $win->cols,
+   ) );
+}
+
+sub render_to_rb
+{
+   my $self = shift;
+   my ( $rb, $rect ) = @_;
+
+   my $win = $self->window;
+   my $cols = $win->cols;
 
    my $items = $self->{items};
 
@@ -822,6 +824,9 @@ sub render_lines
    if( my $partial = $self->{start_partial} ) {
       $line -= $partial;
    }
+
+   my $startline = $rect->top;
+   my $endline   = $rect->bottom;
 
    while( $line < $endline and $itemidx < @$items ) {
       my $item       = $self->_item( $itemidx );
@@ -835,19 +840,19 @@ sub render_lines
 
       next if $firstline >= $itemheight;
 
-      $rc->save;
+      $rb->save;
       {
          my $lastline = ( $endline < $line ) ? $endline - $top : $itemheight;
 
-         $rc->translate( $top, 0 );
-         $rc->clip( Tickit::Rect->new(
+         $rb->translate( $top, 0 );
+         $rb->clip( Tickit::Rect->new(
             top    => $firstline,
             bottom => $lastline,
             left   => 0,
             cols   => $cols,
          ) );
 
-         $item->render( $rc,
+         $item->render( $rb,
             top       => 0,
             firstline => $firstline,
             lastline  => $lastline - 1,
@@ -856,12 +861,12 @@ sub render_lines
          );
 
       }
-      $rc->restore;
+      $rb->restore;
    }
 
    while( $line < $endline ) {
-      $rc->goto( $line, 0 );
-      $rc->erase( $cols );
+      $rb->goto( $line, 0 );
+      $rb->erase( $cols );
       $line++;
    }
 }

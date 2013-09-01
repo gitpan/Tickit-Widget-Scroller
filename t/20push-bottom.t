@@ -94,11 +94,11 @@ $scroller->push( Tickit::Widget::Scroller::Item::Text->new( "An item of text tha
 
 flush_tickit;
 
-is_termlog( [ GOTO(5,0),
+is_termlog( [ SETBG(undef),
+              SCROLLRECT(0,0,6,20, 1,0),
+              GOTO(4,0),
               SETPEN,
               PRINT("An item of text that"),
-              SETBG(undef),
-              SCROLLRECT(0,0,6,20, 1,0),
               GOTO(5,0),
               SETPEN,
               PRINT("wraps"),

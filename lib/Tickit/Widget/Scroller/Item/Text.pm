@@ -8,7 +8,7 @@ package Tickit::Widget::Scroller::Item::Text;
 use strict;
 use warnings;
 
-our $VERSION = '0.12';
+our $VERSION = '0.13';
 
 use Tickit::Utils qw( textwidth cols2chars );
 
@@ -178,7 +178,7 @@ sub height_for_width
 sub render
 {
    my $self = shift;
-   my ( $rc, %args ) = @_;
+   my ( $rb, %args ) = @_;
 
    my $cols = $args{width};
 
@@ -190,15 +190,15 @@ sub render
    foreach my $lineidx ( $args{firstline} .. $args{lastline} ) {
       my $indent = ( $lineidx && $self->{indent} ) ? $self->{indent} : 0;
 
-      $rc->goto( $lineidx, 0 );
-      $rc->erase( $indent ) if $indent;
+      $rb->goto( $lineidx, 0 );
+      $rb->erase( $indent ) if $indent;
 
       foreach my $chunk ( @{ $lineruns->[$lineidx] } ) {
          my ( $text, $width, $chunkpen ) = @$chunk;
-         $rc->text( $text, $chunkpen );
+         $rb->text( $text, $chunkpen );
       }
 
-      $rc->erase_to( $rc->cols );
+      $rb->erase_to( $rb->cols );
    }
 }
 

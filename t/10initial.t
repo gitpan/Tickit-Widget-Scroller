@@ -23,9 +23,13 @@ $scroller->push(
       "The third line",
 );
 
+is( $scroller->lines, 3, '->lines initially before setting window' );
+
 $scroller->set_window( $win );
 
 flush_tickit;
+
+is( $scroller->lines, 3, '->lines after setting window' );
 
 is_termlog( [ GOTO(0,0),
               SETPEN,
@@ -69,6 +73,8 @@ is( $scroller->item2line( -1 ), 2, 'item2line -1' );
 resize_term( 25, 20 );
 
 flush_tickit;
+
+is( $scroller->lines, 4, '->lines now 4 after narrowing' );
 
 is_termlog( [ GOTO(0,0),
               SETPEN,

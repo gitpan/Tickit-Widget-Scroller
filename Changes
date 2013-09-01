@@ -1,5 +1,11 @@
 Revision history for Tickit-Widget-Scroller
 
+0.13    2013/09/01 01:39:07
+        [CHANGES]
+         * Use Tickit::RenderBuffer and ->render_to_rb from
+           Tickit::Widget 0.35
+         * Have Scroller declare its actual total line height as 'lines'
+
 0.12    CHANGES:
          * Updated for Tickit::Style 0.32 and Tickit::RenderContext 0.07
 

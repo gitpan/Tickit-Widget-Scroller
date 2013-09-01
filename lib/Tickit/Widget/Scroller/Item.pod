@@ -14,9 +14,9 @@ documented here.
 Returns the number of screen lines the item would occupy if rendered to the
 given width. 
 
-=head2 $item->render( $rc, %args )
+=head2 $item->render( $rb, %args )
 
-Renders the item to the given L<Tickit::RenderContext>. C<%args> will contain
+Renders the item to the given L<Tickit::RenderBuffer>. C<%args> will contain
 the following keys:
 
 =over 8
@@ -30,14 +30,14 @@ the entire height of the item, then they imply that clipping will occur; the
 item need draw only the lines indicated.
 
 These are passed for informational purposes. Item implementations are free to
-ignore this if they wish, as clipping will be performed by the RenderContext.
+ignore this if they wish, as clipping will be performed by the RenderBuffer.
 
 =item top => INT
 
 The line of C<$rc> to consider as the top of the item. This is passed for
 legacy purposes and will always be zero. Item implementations are free to
 ignore this value, as it will now be performed using the C<translate> facility
-of the RenderContext.
+of the RenderBuffer.
 
 =item width => INT
 

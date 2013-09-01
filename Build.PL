@@ -7,9 +7,9 @@ my $build = Module::Build->new(
    module_name => 'Tickit::Widget::Scroller',
    requires => {
       'String::Tagged' => 0,
-      'Tickit::RenderContext' => '0.07',
+      'Tickit::RenderBuffer' => 0,
       'Tickit::Test' => '0.12',
-      'Tickit::Widget' => '0.29',
+      'Tickit::Widget' => '0.35',
       'Tickit::Window' => '0.22',
       'Tickit::Pen' => '0.19',
    },
