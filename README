@@ -77,6 +77,13 @@ CONSTRUCTOR
             See also `set_gen_top_indicator' and `set_gen_bottom_indicator'.
 
 METHODS
+  $on_scrolled = $scroller->on_scrolled
+  $scroller->set_on_scrolled( $on_scrolled )
+    Return or set the CODE reference to be called when the scroll position
+    is adjusted.
+
+     $on_scrolled->( $scroller, $delta )
+
   $scroller->push( @items )
     Append the given items to the end of the list.
 

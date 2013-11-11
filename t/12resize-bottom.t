@@ -70,4 +70,33 @@ is_display( [ "line 6",
               "line 8", ],
             'Display after resize fewer columns' );
 
+$rootwin->clear;
+$win->resize( 15, 40 );
+
+flush_tickit;
+
+is_display( [ "A line of content at line 1",
+              "A line of content at line 2",
+              "A line of content at line 3",
+              "A line of content at line 4",
+              "A line of content at line 5",
+              "A line of content at line 6",
+              "A line of content at line 7",
+              "A line of content at line 8",
+              "A line of content at line 9",
+              "A line of content at line 10" ],
+            'Display after resize too big' );
+
+$rootwin->clear;
+$win->resize( 5, 40 );
+
+flush_tickit;
+
+is_display( [ "A line of content at line 6",
+              "A line of content at line 7",
+              "A line of content at line 8",
+              "A line of content at line 9",
+              "A line of content at line 10" ],
+            'Display after shrink from resize too big' );
+
 done_testing;

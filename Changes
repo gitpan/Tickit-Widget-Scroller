@@ -1,5 +1,12 @@
 Revision history for Tickit-Widget-Scroller
 
+0.15    2013/11/11 20:23:05
+        [CHANGES]
+         * Added 'on_scrolled' event
+
+        [BUGFIXES]
+         * Correctly reset gravity after shrinking from oversized window
+
 0.14    2013/09/02 00:44:56
         [CHANGES]
          * Don't declare linecount as ->lines after all, as it breaks things

@@ -16,7 +16,7 @@ use Tickit::Window;
 use Tickit::Utils qw( textwidth );
 use Tickit::RenderBuffer;
 
-our $VERSION = '0.14';
+our $VERSION = '0.15';
 
 use Carp;
 
@@ -159,6 +159,8 @@ sub new
 
    $self->{gravity_bottom} = $gravity eq "bottom";
 
+   $self->set_on_scrolled( $args{on_scrolled} ) if $args{on_scrolled};
+
    $self->set_gen_top_indicator( $args{gen_top_indicator} );
    $self->set_gen_bottom_indicator( $args{gen_bottom_indicator} );
 
@@ -223,8 +225,15 @@ sub reshape
 
    if( defined $itemidx ) {
       $self->scroll_to( $self->{gravity_bottom} ? -1 : 0, $itemidx, $itemline );
-      $self->update_indicators;
    }
+   elsif( $self->{gravity_bottom} ) {
+      $self->scroll_to_bottom;
+   }
+   else {
+      $self->scroll_to_top;
+   }
+
+   $self->update_indicators;
 }
 
 sub window_lost
@@ -253,6 +262,29 @@ sub window_gained
    if( delete $self->{pending_scroll_to_bottom} ) {
       $self->scroll_to_bottom;
    }
+}
+
+=head2 $on_scrolled = $scroller->on_scrolled
+
+=head2 $scroller->set_on_scrolled( $on_scrolled )
+
+Return or set the CODE reference to be called when the scroll position is
+adjusted.
+
+ $on_scrolled->( $scroller, $delta )
+
+=cut
+
+sub on_scrolled
+{
+   my $self = shift;
+   return $self->{on_scrolled};
+}
+
+sub set_on_scrolled
+{
+   my $self = shift;
+   ( $self->{on_scrolled} ) = @_;
 }
 
 =head2 $scroller->push( @items )
@@ -513,6 +545,10 @@ REDO:
    }
    else {
       $self->redraw;
+   }
+
+   if( my $on_scrolled = $self->{on_scrolled} ) {
+      $self->$on_scrolled( $scroll_amount );
    }
 
    $self->update_indicators;

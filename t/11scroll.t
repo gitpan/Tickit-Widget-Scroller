@@ -14,7 +14,10 @@ use Tickit::Widget::Scroller::Item::Text;
 # TODO: mk_window once Tickit::Test can take a size there too
 my ( $term, $win ) = mk_term_and_window lines => 5, cols => 15;
 
-my $scroller = Tickit::Widget::Scroller->new;
+my $scrolled_delta = 0;
+my $scroller = Tickit::Widget::Scroller->new(
+   on_scrolled => sub { $scrolled_delta += $_[1] },
+);
 
 $scroller->push(
    map { Tickit::Widget::Scroller::Item::Text->new( "Item of text $_ which is long" ) } 1 .. 9
@@ -67,6 +70,8 @@ is( $scroller->lines_below, 13, 'lines_below initially' );
 
 $scroller->scroll( +10 );
 
+is( $scrolled_delta, 10, '$scrolled_delta after ->scroll' );
+
 flush_tickit;
 
 is_termlog( [ GOTO(0,0),
@@ -113,6 +118,8 @@ is( $scroller->lines_below,  3, 'lines_below after scroll +10' );
 
 $scroller->scroll( -1 );
 
+is( $scrolled_delta, 9, '$scrolled_delta after ->scroll -1' );
+
 flush_tickit;
 
 is_termlog( [ SETBG(undef),
@@ -136,6 +143,8 @@ is( $scroller->lines_below,  4, 'lines_below after scroll -1' );
 
 $scroller->scroll( +1 );
 
+is( $scrolled_delta, 10, '$scrolled_delta after ->scroll +1' );
+
 flush_tickit;
 
 is_termlog( [ SETBG(undef),
@@ -153,6 +162,8 @@ is_display( [ [TEXT("Item of text 6 ")],
             'Display after scroll +1' );
 
 $scroller->scroll( -10 );
+
+is( $scrolled_delta, 0, '$scrolled_delta after ->scroll -10' );
 
 flush_tickit;
 
@@ -185,6 +196,8 @@ is_display( [ [TEXT("Item of text 1 ")],
             'Display after scroll -10' );
 
 $scroller->scroll_to_bottom;
+
+is( $scrolled_delta, 13, '$scrolled_delta after ->scroll_to_bottom' );
 
 flush_tickit;
 
@@ -220,6 +233,8 @@ is_display( [ [TEXT("which is long")],
 
 $scroller->scroll_to_top;
 
+is( $scrolled_delta, 0, '$scrolled_delta after ->scroll_to_top' );
+
 flush_tickit;
 
 is_termlog( [ GOTO(0,0),
@@ -251,6 +266,8 @@ is_display( [ [TEXT("Item of text 1 ")],
             'Display after scroll_to_top' );
 
 $scroller->scroll_to( 2, 4, 0 ); # About halfway
+
+is( $scrolled_delta, 6, '$scrolled_delta after ->scroll_to halfway' );
 
 flush_tickit;
 
@@ -286,7 +303,14 @@ $scroller->scroll( +5 );
 flush_tickit;
 drain_termlog;
 
-$scroller->scroll( +5 ); # over the end
+{
+   my $pre_scroll_delta = $scrolled_delta;
+
+   $scroller->scroll( +5 ); # over the end
+
+   is( $scrolled_delta - $pre_scroll_delta, 2, 'on_scroll given actual delta, not requested' );
+   is( $scrolled_delta, 13, '$scrolled_delta after ->scroll +5 over the end' );
+}
 
 flush_tickit;
 
@@ -350,5 +374,7 @@ is_display( [ [TEXT("which is long")],
               [TEXT("Item of text 9 ")],
               [TEXT("which is long")] ],
             'Display after ->scroll(+2) x 2' );
+
+is( $scrolled_delta, 13, '$scrolled_delta before EOF' );
 
 done_testing;
