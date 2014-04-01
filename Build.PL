@@ -10,7 +10,7 @@ my $build = Module::Build->new(
       'Tickit::RenderBuffer' => 0,
       'Tickit::Test' => '0.12',
       'Tickit::Widget' => '0.35',
-      'Tickit::Window' => '0.22',
+      'Tickit::Window' => '0.42',
       'Tickit::Pen' => '0.19',
    },
    build_requires => {

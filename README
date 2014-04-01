@@ -84,6 +84,12 @@ METHODS
 
      $on_scrolled->( $scroller, $delta )
 
+    This is invoked by the `scroll' method, including the `scroll_to',
+    `scroll_to_top' and `scroll_to_bottom'. In normal cases it will be given
+    the delta offset that `scroll' itself was invoked with, though this may
+    be clipped if this would scroll past the beginning or end of the
+    display.
+
   $scroller->push( @items )
     Append the given items to the end of the list.
 

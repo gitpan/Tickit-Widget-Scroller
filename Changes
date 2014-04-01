@@ -1,5 +1,11 @@
 Revision history for Tickit-Widget-Scroller
 
+0.16    2014/04/01 22:50:13
+        [CHANGES]
+         * Clarify documentation on behaviour of on_scrolled
+         * Use new Window expose with_rb event from Tickit 0.42
+         * Fix unit tests to work with Tickit 0.43's new ordering
+
 0.15    2013/11/11 20:23:05
         [CHANGES]
          * Added 'on_scrolled' event

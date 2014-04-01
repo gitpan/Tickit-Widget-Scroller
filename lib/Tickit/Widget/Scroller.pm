@@ -1,7 +1,7 @@
 #  You may distribute under the terms of either the GNU General Public License
 #  or the Artistic License (the same terms as Perl itself)
 #
-#  (C) Paul Evans, 2011-2013 -- leonerd@leonerd.org.uk
+#  (C) Paul Evans, 2011-2014 -- leonerd@leonerd.org.uk
 
 package Tickit::Widget::Scroller;
 
@@ -10,13 +10,13 @@ use warnings;
 use base qw( Tickit::Widget );
 use Tickit::Style;
 Tickit::Widget->VERSION( '0.35' );
-Tickit::Window->VERSION( '0.22' );
+Tickit::Window->VERSION( '0.42' );
 
 use Tickit::Window;
 use Tickit::Utils qw( textwidth );
 use Tickit::RenderBuffer;
 
-our $VERSION = '0.15';
+our $VERSION = '0.16';
 
 use Carp;
 
@@ -272,6 +272,11 @@ Return or set the CODE reference to be called when the scroll position is
 adjusted.
 
  $on_scrolled->( $scroller, $delta )
+
+This is invoked by the C<scroll> method, including the C<scroll_to>,
+C<scroll_to_top> and C<scroll_to_bottom>. In normal cases it will be given the
+delta offset that C<scroll> itself was invoked with, though this may be
+clipped if this would scroll past the beginning or end of the display.
 
 =cut
 
@@ -1032,10 +1037,12 @@ sub update_indicators
       }
       elsif( $self->window ) {
          $floatwin = $win->make_float( $line, $win->cols - $textwidth, 1, $textwidth );
-         $floatwin->set_on_expose( sub {
-            my $win = shift;
-            $win->goto( 0, 0 );
-            $win->print( $self->{$text_field}, $self->get_style_pen( "indicator" ) );
+         $floatwin->set_on_expose( with_rb => sub {
+            my ( undef, $rb, $rect ) = @_;
+            $rb->text_at( 0, 0,
+               $self->{$text_field},
+               $self->get_style_pen( "indicator" )
+            );
          } );
          $self->{"${edge}_indicator_win"} = $floatwin;
       }

@@ -55,6 +55,17 @@ is_display( [ [TEXT("Line 1 of content" . (" "x37)), TEXT("-- Start{0/0} items{5
 $scroller->scroll( 2 );
 flush_tickit;
 
+my @expect_content =
+   ( map { GOTO($_-3,0),
+           SETPEN,
+           PRINT("Line $_ of content"),
+           SETBG(undef),
+           ERASECH(64-length $_), } 26 .. 27 );
+my @expect_indicator =
+   ( GOTO(0,54),
+     SETPEN(rv=>1),
+     PRINT("-- Start{2/0} items{50} --") );
+
 is_termlog( [ SETPEN,
               SCROLLRECT(1,0,24,80,2,0),
               GOTO(0,0),
@@ -62,14 +73,11 @@ is_termlog( [ SETPEN,
               PRINT("Line 3 of content"),
               SETBG(undef),
               ERASECH(37),
-              ( map { GOTO($_-3,0),
-                      SETPEN,
-                      PRINT("Line $_ of content"),
-                      SETBG(undef),
-                      ERASECH(64-length $_), } 26 .. 27 ),
-              GOTO(0,54),
-              SETPEN(rv=>1),
-              PRINT("-- Start{2/0} items{50} --") ],
+              # Recent versions of Tickit::Window flush in a different order
+              ( $Tickit::Window::VERSION >= 0.43
+                 ? ( @expect_indicator, @expect_content )
+                 : ( @expect_content, @expect_indicator ) ),
+           ],
             'Termlog after ->scroll' );
 
 is_display( [ [TEXT("Line 3 of content" . (" "x37)), TEXT("-- Start{2/0} items{50} --",rv=>1) ],
