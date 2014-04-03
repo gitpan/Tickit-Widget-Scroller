@@ -16,7 +16,7 @@ use Tickit::Window;
 use Tickit::Utils qw( textwidth );
 use Tickit::RenderBuffer;
 
-our $VERSION = '0.16';
+our $VERSION = '0.17';
 
 use Carp;
 
@@ -941,10 +941,10 @@ my %bindings = (
 sub on_key
 {
    my $self = shift;
-   my ( $type, $str ) = @_;
+   my ( $ev ) = @_;
 
-   if( $type eq "key" and my $code = $bindings{$str} ) {
-      $code->( $self, $str );
+   if( $ev->type eq "key" and my $code = $bindings{$ev->str} ) {
+      $code->( $self );
       return 1;
    }
 
@@ -954,12 +954,12 @@ sub on_key
 sub on_mouse
 {
    my $self = shift;
-   my ( $ev, $button_dir, $line, $col ) = @_;
+   my ( $ev ) = @_;
 
-   return unless $ev eq "wheel";
+   return unless $ev->type eq "wheel";
 
-   $self->scroll(  5 ) if $button_dir eq "down";
-   $self->scroll( -5 ) if $button_dir eq "up";
+   $self->scroll(  5 ) if $ev->button eq "down";
+   $self->scroll( -5 ) if $ev->button eq "up";
 }
 
 =head2 $scroller->set_gen_top_indicator( $method )

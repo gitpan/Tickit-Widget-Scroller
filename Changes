@@ -1,5 +1,10 @@
 Revision history for Tickit-Widget-Scroller
 
+0.17    2014/04/04 00:00:45
+        [CHANGES]
+         * Use Tickit 0.32-style event structures for key/mouse events
+         * Prepare for Tickit 0.44's whole-tree RB rendering order
+
 0.16    2014/04/01 22:50:13
         [CHANGES]
          * Clarify documentation on behaviour of on_scrolled
