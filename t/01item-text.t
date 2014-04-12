@@ -10,7 +10,7 @@ use Tickit::RenderBuffer;
 
 use Tickit::Widget::Scroller::Item::Text;
 
-my $win = mk_window;
+my $term = mk_term;
 
 my $item = Tickit::Widget::Scroller::Item::Text->new( "My message here" );
 
@@ -22,11 +22,10 @@ is_deeply( [ $item->chunks ],
 
 is( $item->height_for_width( 80 ), 1, 'height_for_width 80' );
 
-my $rb = Tickit::RenderBuffer->new( lines => $win->lines, cols => $win->cols );
-$rb->setpen( $win->pen );
+my $rb = Tickit::RenderBuffer->new( lines => $term->lines, cols => $term->cols );
 
 $item->render( $rb, top => 0, firstline => 0, lastline => 0, width => 80, height => 25 );
-$rb->flush_to_window( $win );
+$rb->flush_to_term( $term );
 
 flush_tickit;
 
@@ -40,19 +39,28 @@ is_termlog( [ GOTO(0,0),
 is_display( [ [TEXT("My message here")] ],
             'Display for render fullwidth' );
 
-$win->clear;
+$term->clear;
 drain_termlog;
 
 {
-   my $subwin = $win->make_sub( 0, 0, 10, 12 );
+   {
+      $rb->save;
 
-   my $subrc = Tickit::RenderBuffer->new( lines => $subwin->lines, cols => $subwin->cols );
-   $subrc->setpen( $subwin->pen );
+      $rb->clip( Tickit::Rect->new(
+         top   => 0,
+         left  => 0,
+         lines => 10,
+         cols  => 12,
+      ) );
 
-   is( $item->height_for_width( 12 ), 2, 'height_for_width 12' );
+      is( $item->height_for_width( 12 ), 2, 'height_for_width 12' );
 
-   $item->render( $subrc, top => 0, firstline => 0, lastline => 1, width => 12, height => 10 );
-   $subrc->flush_to_window( $subwin );
+      $item->render( $rb, top => 0, firstline => 0, lastline => 1, width => 12, height => 10 );
+
+      $rb->restore;
+   }
+
+   $rb->flush_to_term( $term );
 
    flush_tickit;
 
@@ -76,8 +84,8 @@ drain_termlog;
 
    is( $indenteditem->height_for_width( 12 ), 2, 'height_for_width 12 with indent' );
 
-   $indenteditem->render( $subrc, top => 0, firstline => 0, lastline => 1, width => 12, height => 10 );
-   $subrc->flush_to_window( $subwin );
+   $indenteditem->render( $rb, top => 0, firstline => 0, lastline => 1, width => 12, height => 10 );
+   $rb->flush_to_term( $term );
 
    flush_tickit;
 
@@ -102,18 +110,15 @@ drain_termlog;
 
 # Boundary condition in whitespace splitting
 {
-   $win->clear;
+   $term->clear;
    drain_termlog;
 
    my $item = Tickit::Widget::Scroller::Item::Text->new( "AAAA BBBB CCCC DDDD" );
 
    is( $item->height_for_width( 9 ), 2, 'height_for_width 2 for splitting boundary' );
 
-   my $subrc = Tickit::RenderBuffer->new( lines => 2, cols => 9 );
-   $subrc->setpen( $win->pen );
-
-   $item->render( $subrc, top => 0, firstline => 0, lastline => 1, width => 9, height => 2 );
-   $subrc->flush_to_window( $win );
+   $item->render( $rb, top => 0, firstline => 0, lastline => 1, width => 9, height => 2 );
+   $rb->flush_to_term( $term );
 
    flush_tickit;
 
@@ -132,7 +137,7 @@ drain_termlog;
 
 # Linefeeds
 {
-   $win->clear;
+   $term->clear;
    drain_termlog;
 
    my $item = Tickit::Widget::Scroller::Item::Text->new( "Some more text\nwith linefeeds" );
@@ -145,7 +150,7 @@ drain_termlog;
    is( $item->height_for_width( 80 ), 2, 'height_for_width 2 with linefeeds' );
 
    $item->render( $rb, top => 0, firstline => 0, lastline => 1, width => 80, height => 2 );
-   $rb->flush_to_window( $win );
+   $rb->flush_to_term( $term );
 
    flush_tickit;
 
@@ -170,7 +175,7 @@ drain_termlog;
 {
    use utf8;
 
-   $win->clear;
+   $term->clear;
    drain_termlog;
 
    my $item = Tickit::Widget::Scroller::Item::Text->new( "(ノಠ益ಠ)ノ彡┻━┻" );
@@ -182,7 +187,7 @@ drain_termlog;
    is( $item->height_for_width( 80 ), 1, 'height_for_width 2 with Unicode' );
 
    $item->render( $rb, top => 0, firstline => 0, lastline => 0, width => 80, height => 1 );
-   $rb->flush_to_window( $win );
+   $rb->flush_to_term( $term );
 
    flush_tickit;
 

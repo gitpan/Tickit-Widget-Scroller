@@ -1,14 +1,14 @@
 #  You may distribute under the terms of either the GNU General Public License
 #  or the Artistic License (the same terms as Perl itself)
 #
-#  (C) Paul Evans, 2011-2013 -- leonerd@leonerd.org.uk
+#  (C) Paul Evans, 2011-2014 -- leonerd@leonerd.org.uk
 
 package Tickit::Widget::Scroller::Item::Text;
 
 use strict;
 use warnings;
 
-our $VERSION = '0.17';
+our $VERSION = '0.18';
 
 use Tickit::Utils qw( textwidth cols2chars );
 
@@ -198,7 +198,7 @@ sub render
          $rb->text( $text, $chunkpen );
       }
 
-      $rb->erase_to( $rb->cols );
+      $rb->erase_to( $cols );
    }
 }
 

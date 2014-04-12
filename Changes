@@ -1,5 +1,14 @@
 Revision history for Tickit-Widget-Scroller
 
+0.18    2014/04/12 14:40:45
+        [CHANGES]
+         * Avoid $rb->flush_to_window during unit testing; all unit tests
+           should be done directly to mockterm
+
+        [BUGFIXES]
+         * Text item render shouldn't care about the width of the
+           RenderBuffer, only of itself
+
 0.17    2014/04/04 00:00:45
         [CHANGES]
          * Use Tickit 0.32-style event structures for key/mouse events
