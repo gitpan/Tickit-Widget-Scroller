@@ -8,19 +8,24 @@ my $build = Module::Build->new(
    requires => {
       'String::Tagged' => 0,
       'Tickit::RenderBuffer' => '0.43', # flush_to_term
-      'Tickit::Test' => '0.12',
       'Tickit::Widget' => '0.35',
       'Tickit::Window' => '0.42',
       'Tickit::Pen' => '0.19',
    },
-   build_requires => {
+   test_requires => {
       'Test::More' => '0.88', # done_testing
+      'Tickit::Test' => '0.12',
    },
    auto_configure_requires => 0, # Don't add M::B to configure_requires
    license => 'perl',
    create_makefile_pl => 'traditional',
    create_license => 1,
    create_readme  => 1,
+   meta_merge => {
+      resources => {
+         x_IRC => "irc://irc.freenode.net/#tickit",
+      },
+   },
 );
 
 $build->create_build_script;

@@ -16,7 +16,7 @@ use Tickit::Window;
 use Tickit::Utils qw( textwidth );
 use Tickit::RenderBuffer;
 
-our $VERSION = '0.18';
+our $VERSION = '0.19';
 
 use Carp;
 
@@ -174,21 +174,6 @@ sub new
 sub cols  { 1 }
 sub lines { 1 }
 
-sub _need_lines
-{
-   my $self = shift;
-   return $self->{need_lines} ||= do {
-      my $lines = 0;
-      if( $self->window ) {
-         $lines += $self->_itemheight( $_ ) for 0 .. $#{ $self->{items} };
-      }
-      else {
-         $lines += scalar @{ $self->{items} };
-      }
-      $lines;
-   };
-}
-
 sub _item
 {
    my $self = shift;
@@ -219,7 +204,6 @@ sub reshape
       $self->{window_cols} = $self->window->cols;
 
       undef $self->{itemheights};
-      undef $self->{need_lines};
       $self->resized;
    }
 
@@ -420,13 +404,16 @@ sub unshift :method
    $self->update_indicators;
 }
 
-=head2 $scroller->shift( $count )
+=head2 @items = $scroller->shift( $count )
 
-Remove the given number of items from the start of the list.
+Remove the given number of items from the start of the list and returns them.
 
 If any of the items are on display, the Scroller will be scrolled upwards an
 amount sufficient to close the gap, ensuring the first remaining item is now
 at the top of the display.
+
+The returned items may be re-used by adding them back into the scroller again
+either by C<push> or C<unshift>, or may be discarded.
 
 =cut
 
@@ -449,7 +436,7 @@ sub shift :method
       # ->scroll implies $win->restore
    }
 
-   splice @$items, 0, $count;
+   my @ret = splice @$items, 0, $count;
    splice @{ $self->{itemheights} }, 0, $count;
    $self->{start_item} -= $count;
 
@@ -459,6 +446,51 @@ sub shift :method
    }
 
    $self->update_indicators;
+
+   return @ret;
+}
+
+=head2 @items = $scroller->pop( $count )
+
+Remove the given number of items from the end of the list and returns them.
+
+If any of the items are on display, the Scroller will be scrolled downwards an
+amount sufficient to close the gap, ensuring the last remaining item is now at
+the bottom of the display.
+
+The returned items may be re-used by adding them back into the scroller again
+either by C<push> or C<unshift>, or may be discarded.
+
+=cut
+
+sub pop :method
+{
+   my $self = shift;
+   my ( $count ) = @_;
+
+   defined $count or $count = 1;
+
+   my $items = $self->{items};
+
+   croak '$count out of bounds' if $count <= 0;
+   croak '$count out of bounds' if $count > @$items;
+
+   my ( $firstline, $offscreen ) = $self->item2line( -$count, 0 );
+
+   if( defined $firstline ) {
+      $self->scroll( $firstline - $self->window->lines );
+   }
+
+   my @ret = splice @$items, -$count, $count;
+   splice @{ $self->{itemheights} }, -$count, $count;
+
+   if( !defined $firstline and defined $offscreen and $offscreen eq "above" ) {
+      $self->scroll_to_bottom;
+   }
+
+   $self->update_indicators;
+
+   return @ret;
 }
 
 =head2 $scroller->scroll( $delta )

@@ -1,5 +1,10 @@
 Revision history for Tickit-Widget-Scroller
 
+0.19    2014/12/15 18:49:57
+        [CHANGES]
+         * Added ->pop method
+         * Have ->shift and ->pop return the item(s) they removed
+
 0.18    2014/04/12 14:40:45
         [CHANGES]
          * Avoid $rb->flush_to_window during unit testing; all unit tests

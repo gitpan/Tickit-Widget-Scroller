@@ -110,12 +110,27 @@ METHODS
     will remain following the head of the items, scrolling itself upwards as
     more are added.
 
-  $scroller->shift( $count )
-    Remove the given number of items from the start of the list.
+  @items = $scroller->shift( $count )
+    Remove the given number of items from the start of the list and returns
+    them.
 
     If any of the items are on display, the Scroller will be scrolled
     upwards an amount sufficient to close the gap, ensuring the first
     remaining item is now at the top of the display.
+
+    The returned items may be re-used by adding them back into the scroller
+    again either by `push' or `unshift', or may be discarded.
+
+  @items = $scroller->pop( $count )
+    Remove the given number of items from the end of the list and returns
+    them.
+
+    If any of the items are on display, the Scroller will be scrolled
+    downwards an amount sufficient to close the gap, ensuring the last
+    remaining item is now at the bottom of the display.
+
+    The returned items may be re-used by adding them back into the scroller
+    again either by `push' or `unshift', or may be discarded.
 
   $scroller->scroll( $delta )
     Move the display up or down by the given `$delta' amount; with positive

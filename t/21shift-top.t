@@ -46,7 +46,9 @@ is_display( [ [TEXT("Existing line 1")],
 
 is_cursorpos( 7, 0, 'Cursor position intially' );
 
-$scroller->shift;
+my ( $item ) = $scroller->shift;
+
+isa_ok( $item, "Tickit::Widget::Scroller::Item::Text" );
 
 flush_tickit;
 
